@@ -1,23 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 function App() {
+  const [message, setMessage] = useState(""); // 상태 선언
+
+  useEffect(() => {
+    axios.get("/hello")
+      .then(res => {
+        setMessage(res.data); // 응답 데이터를 상태에 저장
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Hello React</h1>
+      <p>Spring에서 온 메시지: {message}</p> {/* 상태를 화면에 출력 */}
     </div>
   );
 }
