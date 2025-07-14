@@ -1,15 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import App from './1_login/App';
-import Home from './2_login_succress/Home';// ✅ 로그인 후 이동할 컴포넌트
+import Auth from './1_login/Auth';
+import Home from './2_login_succress/Home';// 로그인 후 이동할 컴포넌트
+import Schedule from './3_Schedule/Schedule';
+import Notice from './3_Notice/Notice';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App />} />
+      <Route path="/" element={<Auth />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/schedule" element={<Schedule />} />
+      <Route path="/notice" element={<Notice />} />
     </Routes>
   </BrowserRouter>
 );
