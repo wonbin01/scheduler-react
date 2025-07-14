@@ -9,7 +9,7 @@ function Home() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    axios.get("/api/session", { withCredentials: true })
+    axios.get("/session/home", { withCredentials: true })
       .then(response => {
         setUserId(response.data.id);
         setLoading(false);
