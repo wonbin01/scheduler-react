@@ -7,7 +7,7 @@ function Notice() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("/session/notice", { withCredentials: true })
+    axios.get("/notice", { withCredentials: true })
       .then(res => {
         setLoading(false);
       })
