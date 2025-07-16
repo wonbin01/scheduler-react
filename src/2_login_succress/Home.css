@@ -34,3 +34,21 @@
 .sky-button:hover {
   background-color: #5bb0ea;
 }
+
+.logout-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.logout-button:hover {
+  background-color: #d9363e;
+}

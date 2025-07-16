@@ -14,26 +14,24 @@ function NoticeBoard() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-  setLoading(true);
-  axios.get(`/notice/${category}`, { withCredentials: true })
-    .then(res => {
-      setPosts(res.data); // 게시글 목록 세팅
-    })
-    .catch(err => {
-      if (err.response?.status === 401) {
-        // 세션 없으면 메인 페이지로 이동
-        navigate("/");
-      } else {
-        alert("게시글 로딩 실패");
-        setPosts([]);
-      }
-    })
-    .finally(() => setLoading(false));
-}, [category, navigate]);
+    setLoading(true);
+    axios.get(`/notice/${category}`, { withCredentials: true })
+      .then(res => {
+        setPosts(res.data);
+      })
+      .catch(err => {
+        if (err.response?.status === 401) {
+          navigate("/");
+        } else {
+          alert("게시글 로딩 실패");
+          setPosts([]);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [category, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!title.trim() || !content.trim()) {
       alert("제목과 내용을 모두 입력해주세요.");
       return;
@@ -51,18 +49,47 @@ function NoticeBoard() {
       });
   };
 
+  const handleClickPost = (postId) => {
+    navigate(`/notice/${category}/${postId}`);
+  };
+
   if (loading) return <div>로딩 중...</div>;
 
   return (
-    <div style={{
-      padding: "2rem",
-      minHeight: "100vh",
-      backgroundColor: "#e6f2ff",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center"
-    }}>
-      <h2>{category} 게시판</h2>
+  <div 
+    style={{ 
+      position: "relative",  // 부모에 relative 추가
+      padding: "2rem", 
+      minHeight: "100vh", 
+      backgroundColor: "#e6f2ff", 
+      display: "flex", 
+      flexDirection: "column", 
+      alignItems: "center" 
+    }}
+  >
+    {/* 왼쪽 상단 절대 위치 뒤로가기 버튼 */}
+    <button
+      onClick={() => navigate("/notice")}
+      style={{
+        position: "absolute",
+        top: "1rem",
+        left: "1rem",
+        padding: "0.5rem 1rem",
+        fontSize: "1rem",
+        backgroundColor: "#3399ff",
+        color: "#fff",
+        border: "none",
+        borderRadius: "5px",
+        cursor: "pointer",
+        zIndex: 10
+      }}
+      onMouseOver={(e) => e.target.style.backgroundColor = "#267acc"}
+      onMouseOut={(e) => e.target.style.backgroundColor = "#3399ff"}
+    >
+      ← 뒤로가기
+    </button>
+
+    <h2>{category} 게시판</h2>
 
       <button
         onClick={() => setShowForm(show => !show)}
@@ -145,15 +172,17 @@ function NoticeBoard() {
           posts.map(post => (
             <div
               key={post.id}
+              onClick={() => handleClickPost(post.id)}
               style={{
                 backgroundColor: "#cce6ff",
                 padding: "1rem",
                 borderRadius: "8px",
-                border: "1px solid #99ccff"
+                border: "1px solid #99ccff",
+                cursor: "pointer"
               }}
             >
               <h3 style={{ color: "#003366", margin: 0 }}>{post.title}</h3>
-              <p style={{ marginTop: "0.5rem" }}>{post.content}</p>
+              <p style={{ marginTop: "0.5rem", color: "#333" }}>{post.content.slice(0, 50)}...</p>
             </div>
           ))
         )}

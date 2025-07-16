@@ -1,0 +1,72 @@
+.notice-container {
+  padding: 2rem;
+  min-height: 100vh;
+  background-color: #e6f2ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.notice-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.notice-grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.notice-category-btn {
+  padding: 1rem;
+  font-size: 1rem;
+  background-color: #cce6ff;
+  border: 1px solid #99ccff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: #003366;
+  font-weight: bold;
+}
+
+.notice-category-btn:hover {
+  background-color: #b3d9ff;
+}
+
+.notice-add-btn {
+  padding: 1rem;
+  font-size: 1rem;
+  background-color: #ffffff;
+  border: 2px dashed #99ccff;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #3399ff;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.notice-add-btn:hover {
+  background-color: #f0f8ff;
+}
+
+.back-button-top-left {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #3399ff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.back-button-top-left:hover {
+  background-color: #267acc;
+}

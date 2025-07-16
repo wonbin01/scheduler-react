@@ -19,12 +19,28 @@ function Home() {
       });
   }, [navigate]);
 
+  const handleLogout = () => {
+    axios.post("/logout", {}, { withCredentials: true })
+      .then(() => {
+        alert("로그아웃 되었습니다.");
+        navigate("/");
+      })
+      .catch(() => {
+        alert("로그아웃 실패");
+      });
+  };
+
   if (loading) {
     return <div>로딩 중...</div>;
   }
 
   return (
     <div className="home-container">
+      {/* 🔼 왼쪽 상단 로그아웃 버튼 */}
+      <button className="logout-button" onClick={handleLogout}>
+        로그아웃
+      </button>
+
       <p className="welcome-message">환영합니다.</p>
       <p>ID : <strong>{userId}</strong></p>
 
