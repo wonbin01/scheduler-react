@@ -6,6 +6,7 @@ import Home from './2_login_succress/Home';// 로그인 후 이동할 컴포넌�
 import Schedule from './3_Schedule/Schedule';
 import Notice from './3_Notice/Notice';
 import NoticeBoard from './3_Notice/CategoryNotice';
+import NoticeDetail from './3_Notice/NoticeDetail';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -16,6 +17,7 @@ root.render(
       <Route path="/schedule" element={<Schedule />} />
       <Route path="/notice" element={<Notice />} />
       <Route path="/notice/:category" element={<NoticeBoard />} />
+      <Route path="/notice/:category/:id" element={<NoticeDetail />} />
     </Routes>
   </BrowserRouter>
 );
