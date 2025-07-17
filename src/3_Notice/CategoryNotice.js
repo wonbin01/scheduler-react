@@ -31,23 +31,27 @@ function NoticeBoard() {
   }, [category, navigate]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title.trim() || !content.trim()) {
-      alert("제목과 내용을 모두 입력해주세요.");
-      return;
-    }
+  e.preventDefault();
+  if (!title.trim() || !content.trim()) {
+    alert("제목과 내용을 모두 입력해주세요.");
+    return;
+  }
 
-    axios.post(`/notice/${category}`, { title, content }, { withCredentials: true })
-      .then(res => {
-        setPosts(prev => [...prev, res.data]);
-        setTitle("");
-        setContent("");
-        setShowForm(false);
-      })
-      .catch(() => {
-        alert("게시글 작성 실패");
-      });
-  };
+  axios.post(`/notice/${category}`, { title, content }, { withCredentials: true })
+    .then(() => {
+      // 게시글 작성 성공 후, 다시 게시글 목록을 서버에서 받아오기
+      return axios.get(`/notice/${category}`, { withCredentials: true });
+    })
+    .then(res => {
+      setPosts(res.data);
+      setTitle("");
+      setContent("");
+      setShowForm(false);
+    })
+    .catch(() => {
+      alert("게시글 작성 실패 또는 목록 갱신 실패");
+    });
+};
 
   const handleClickPost = (postId) => {
     navigate(`/notice/${category}/${postId}`);

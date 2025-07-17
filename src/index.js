@@ -7,6 +7,7 @@ import Schedule from './3_Schedule/Schedule';
 import Notice from './3_Notice/Notice';
 import NoticeBoard from './3_Notice/CategoryNotice';
 import NoticeDetail from './3_Notice/NoticeDetail';
+import NoticeEdit from './3_Notice/NoticeEdit';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -18,6 +19,7 @@ root.render(
       <Route path="/notice" element={<Notice />} />
       <Route path="/notice/:category" element={<NoticeBoard />} />
       <Route path="/notice/:category/:id" element={<NoticeDetail />} />
+      <Route path="/notice/:category/:id/edit" element={<NoticeEdit />} />
     </Routes>
   </BrowserRouter>
 );
