@@ -7,11 +7,13 @@ function Home() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     axios.get("/home", { withCredentials: true })
       .then(response => {
         setUserId(response.data.id);
+        setUserName(response.data.name);
         setLoading(false);
       })
       .catch(error => {
@@ -42,7 +44,10 @@ function Home() {
       </button>
 
       <p className="welcome-message">환영합니다.</p>
-      <p>ID : <strong>{userId}</strong></p>
+      <p>사번 : <strong>{userId}</strong></p>
+      <p>이름 : <strong>{userName}</strong></p>
+
+      {/* 🔽 버튼 그룹 */}
 
       <div className="button-group">
         <button className="sky-button" onClick={() => navigate("/schedule")}>

@@ -5,21 +5,23 @@ import "./Auth.css";
 
 function Auth() {
   const [tab, setTab] = useState("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [usernumber, setUsernumber] = useState(""); // 아이디
+  const [password, setPassword] = useState("");     // 비밀번호
+  const [username, setUsername] = useState("");     // 이름
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
   const clearForm = () => {
-    setUsername("");
+    setUsernumber("");
     setPassword("");
+    setUsername("");
     setMessage("");
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/login", { username, password }, { withCredentials: true });
+      const res = await axios.post("/login", { usernumber, password }, { withCredentials: true });
       setMessage("로그인 성공: " + res.data);
       navigate("/home");
     } catch (err) {
@@ -30,7 +32,7 @@ function Auth() {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("/signup", { username, password });
+      const res = await axios.post("/signup", { usernumber, password, username });
       setMessage("회원가입 성공: " + res.data);
     } catch (err) {
       setMessage("회원가입 실패: " + (err.response?.data || "서버 오류"));
@@ -58,14 +60,27 @@ function Auth() {
 
       <form onSubmit={tab === "login" ? handleLogin : handleSignup}>
         <div className="form-group">
-          <label>아이디</label>
+          <label>사번</label>
           <input
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={usernumber}
+            onChange={(e) => setUsernumber(e.target.value)}
             required
           />
         </div>
+
+        {tab === "signup" && (
+          <div className="form-group">
+            <label>이름</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+          </div>
+        )}
+
         <div className="form-group">
           <label>비밀번호</label>
           <input
@@ -75,6 +90,7 @@ function Auth() {
             required
           />
         </div>
+
         <button type="submit" className="submit-btn">
           {tab === "login" ? "로그인" : "회원가입"}
         </button>
