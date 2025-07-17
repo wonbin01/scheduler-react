@@ -34,6 +34,10 @@ function NoticeDetail() {
     }
   };
 
+  const handleEdit = () => {
+    navigate(`/notice/${category}/${id}/edit`);
+  };
+
   if (loading) return <div>로딩 중...</div>;
   if (!post) return <div>해당 글이 존재하지 않습니다.</div>;
 
@@ -49,38 +53,55 @@ function NoticeDetail() {
       <h2>{category} 게시글 상세보기</h2>
 
       <div style={{
-  backgroundColor: "#cce6ff",
-  padding: "1.5rem",
-  borderRadius: "8px",
-  border: "1px solid #99ccff",
-  maxWidth: "600px",
-  width: "100%",
-  boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-  maxHeight: "400px",         // 최대 높이 설정
-  overflowY: "auto"           // 세로 스크롤 허용
-}}>
-  <h3 style={{ color: "#003366", marginBottom: "1rem" }}>{post.title}</h3>
-  <p style={{ whiteSpace: "pre-wrap", lineHeight: "1.6", color: "#333" }}>
-    {post.content}
-  </p>
-</div>
+        backgroundColor: "#cce6ff",
+        padding: "1.5rem",
+        borderRadius: "8px",
+        border: "1px solid #99ccff",
+        maxWidth: "600px",
+        width: "100%",
+        boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+        maxHeight: "400px",
+        overflowY: "auto"
+      }}>
+        <h3 style={{ color: "#003366", marginBottom: "1rem" }}>{post.title}</h3>
+        <p style={{ whiteSpace: "pre-wrap", lineHeight: "1.6", color: "#333" }}>
+          {post.content}
+        </p>
+      </div>
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
         <button
-          onClick={() => navigate(-1)}
+  onClick={() => navigate(`/notice/${category}`)}
+  style={{
+    padding: "0.6rem 1.2rem",
+    backgroundColor: "#3399ff",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer"
+  }}
+  onMouseOver={(e) => e.target.style.backgroundColor = "#267acc"}
+  onMouseOut={(e) => e.target.style.backgroundColor = "#3399ff"}
+>
+  ← 목록으로
+</button>
+
+        <button
+          onClick={handleEdit}
           style={{
             padding: "0.6rem 1.2rem",
-            backgroundColor: "#3399ff",
+            backgroundColor: "#ffa940",
             color: "#fff",
             border: "none",
             borderRadius: "5px",
             cursor: "pointer"
           }}
-          onMouseOver={(e) => e.target.style.backgroundColor = "#267acc"}
-          onMouseOut={(e) => e.target.style.backgroundColor = "#3399ff"}
+          onMouseOver={(e) => e.target.style.backgroundColor = "#d48806"}
+          onMouseOut={(e) => e.target.style.backgroundColor = "#ffa940"}
         >
-          ← 목록으로
+          수정
         </button>
+
         <button
           onClick={handleDelete}
           style={{
