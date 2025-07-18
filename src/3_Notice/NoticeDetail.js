@@ -8,33 +8,36 @@ function NoticeDetail() {
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 댓글 상태
   const [commentContent, setCommentContent] = useState("");
   const [comments, setComments] = useState([]);
 
-  useEffect(() => {
-    axios.get(`/notice/${category}/${id}`, { withCredentials: true })
-      .then(res => setPost(res.data))
-      .catch(err => {
-        if (err.response?.status === 401) {
-          navigate("/");
-        } else {
-          alert("글을 불러오지 못했습니다.");
-        }
-      })
-      .finally(() => setLoading(false));
-  }, [category, id, navigate]);
+  // 로그인한 사용자 정보
+  const [userInfo, setUserInfo] = useState(null);
 
- useEffect(() => {
-  axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true })
+  useEffect(() => {
+  axios.get(`/notice/${category}/${id}`, { withCredentials: true })
     .then(res => {
-      console.log("받아온 댓글 데이터:", res.data);
-      setComments(res.data);
+      setPost(res.data.post || res.data);          // post 데이터가 res.data.post에 있으면, 아니면 res.data 사용
+      setUserInfo(res.data.userInfo || null);      // userInfo가 있으면 설정, 없으면 null 처리
     })
-    .catch(() => {
-      // 실패해도 댓글 없으면 그냥 넘어감
-    });
-}, [category, id]);
+    .catch(err => {
+      if (err.response?.status === 401) {
+        navigate("/");
+      } else {
+        alert("글을 불러오지 못했습니다.");
+      }
+    })
+    .finally(() => setLoading(false));
+}, [category, id, navigate]);
+
+
+  useEffect(() => {
+    axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true })
+      .then(res => setComments(res.data))
+      .catch(() => {
+        // 댓글 실패 시 무시
+      });
+  }, [category, id]);
 
   const handleDelete = () => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
@@ -53,7 +56,6 @@ function NoticeDetail() {
     navigate(`/notice/${category}/${id}/edit`);
   };
 
-  // 댓글 작성 핸들러
   const handleCommentSubmit = (e) => {
     e.preventDefault();
 
@@ -63,16 +65,28 @@ function NoticeDetail() {
     }
 
     axios.post(`/notice/${category}/${id}/comments`, { comment_content: commentContent }, { withCredentials: true })
-  .then(() => {
-    return axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true });
-  })
-  .then(res => {
-    setComments(res.data); // 최신 댓글 목록으로 교체
-    setCommentContent(""); // 입력란 초기화
-  })
-  .catch(() => {
-    alert("댓글 작성 실패");
-  });
+      .then(() => {
+        return axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true });
+      })
+      .then(res => {
+        setComments(res.data);
+        setCommentContent("");
+      })
+      .catch(() => {
+        alert("댓글 작성 실패");
+      });
+  };
+
+  // 댓글 삭제 핸들러
+  const handleCommentDelete = (commentId) => {
+    if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
+
+    axios.delete(`/notice/${category}/${id}/comments/${commentId}`, { withCredentials: true })
+      .then(() => {
+        return axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true });
+      })
+      .then(res => setComments(res.data))
+      .catch(() => alert("댓글 삭제 실패"));
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -110,12 +124,43 @@ function NoticeDetail() {
       <div style={{ maxWidth: "600px", width: "100%", marginTop: "2rem" }}>
         <h3>댓글 ({comments.length})</h3>
         <ul style={{ listStyle: "none", paddingLeft: 0 }}>
-          {comments.map((comment) => (
-            <li key={comment.comment_Id} style={{ marginBottom: "1rem", background: "#fff", padding: "0.8rem", borderRadius: "6px", border: "1px solid #ccc" }}>
-              <strong>{comment.username}</strong> <small style={{ color: "#888", fontSize: "0.8rem" }}>{new Date(comment.createdAt).toLocaleString()}</small>
-              <p style={{ marginTop: "0.3rem", whiteSpace: "pre-wrap" }}>{comment.comment_content}</p>
-            </li>
-          ))}
+          {comments.map((comment) => {
+
+            return (
+              <li key={comment.comment_Id} style={{
+                marginBottom: "1rem",
+                background: "#fff",
+                padding: "0.8rem",
+                borderRadius: "6px",
+                border: "1px solid #ccc"
+              }}>
+                <strong>{comment.username}</strong>{" "}
+                <small style={{ color: "#888", fontSize: "0.8rem" }}>
+                  {new Date(comment.createdAt).toLocaleString()}
+                </small>
+                <p style={{ marginTop: "0.3rem", whiteSpace: "pre-wrap" }}>{comment.comment_content}</p>
+
+                {Number(userInfo?.usernumber) === Number(comment.userId) && (
+                  <div style={{ marginTop: "0.5rem" }}>
+                    <button
+                      onClick={() => handleCommentDelete(comment.comment_Id)}
+                      style={{
+                        padding: "0.3rem 0.6rem",
+                        backgroundColor: "#ff4d4f",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        fontSize: "0.8rem",
+                        cursor: "pointer"
+                      }}
+                    >
+                      삭제
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
           {comments.length === 0 && <p>댓글이 없습니다.</p>}
         </ul>
       </div>
