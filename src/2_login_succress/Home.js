@@ -50,8 +50,8 @@ function Home() {
       {/* 🔽 버튼 그룹 */}
 
       <div className="button-group">
-        <button className="sky-button" onClick={() => navigate("/schedule")}>
-          스케줄 신청
+        <button className="sky-button" onClick={() => navigate("/schedulePage")}>
+          스케줄
         </button>
         <button className="sky-button" onClick={() => navigate("/notice")}>
           공지사항
