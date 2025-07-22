@@ -27,10 +27,18 @@ function ScheduleApplyPage() {
   const [etc, setEtc] = useState("");
   const [username, setUsername] = useState("알수없음");
   const [userID, setUserID] = useState(null);
+  const [timeSlot, setTimeSlot] = useState("");
 
   // --- 추가된 상태 ---
   const [selectedDateEvents, setSelectedDateEvents] = useState([]);
   const [showDateEventsModal, setShowDateEventsModal] = useState(false);
+
+  const statusColors = {
+    휴무신청: "#757575",   // 회색
+    오픈신청: "#1976d2",   // 파랑
+    미들신청: "#f57c00",   // 주황
+    마감신청: "#d32f2f",   // 빨강
+  };
 
   useEffect(() => {
     axios
@@ -58,7 +66,7 @@ function ScheduleApplyPage() {
             ...item,
             start,
             end,
-            title: `ID: ${item.usernumber}`,
+            title: `ID: ${item.username}`,
           };
         });
         setEvents(result);
@@ -89,6 +97,15 @@ function ScheduleApplyPage() {
     setShowDateEventsModal(false); // 이벤트 리스트 모달 닫기
   };
 
+  const openForm = () => {
+    setSelectedDate("");
+    setTimeSlot("");
+    setReason("");
+    setAlternative("");
+    setEtc("");
+    setShowForm(true); // 마지막에 모달을 열어줌
+  };
+
   const handleAddEvent = () => {
     if (!selectedDate) {
       alert("날짜를 선택해주세요.");
@@ -98,11 +115,16 @@ function ScheduleApplyPage() {
       alert("사유를 입력해주세요.");
       return;
     }
+    if (!timeSlot) {
+      alert("신청내용을 선택해주세요.");
+      return;
+    }
 
     const newEvent = {
       usernumber: userID,
       username,
       applyDate: selectedDate,
+      timeSlot,
       reason,
       alternativePlan: alternative,
       etc,
@@ -139,18 +161,37 @@ function ScheduleApplyPage() {
   };
 
   const handleCloseEventDetail = () => {
-  if (selectedDateEvents.length > 0) {
-    setSelectedEvent(null);
-    setShowDateEventsModal(true);
-  } else {
-    closeModal(); // 기존대로 닫기
-  }
-};
+    if (selectedDateEvents.length > 0) {
+      setSelectedEvent(null);
+      setShowDateEventsModal(true);
+    } else {
+      closeModal(); // 기존대로 닫기
+    }
+  };
 
-const handleShowMore = (events, date) => {
-  setSelectedDateEvents(events);
-  setShowDateEventsModal(true);
-};
+  const handleShowMore = (events, date) => {
+    setSelectedDateEvents(events);
+    setShowDateEventsModal(true);
+  };
+
+  const eventStyleGetter = (event) => {
+    let backgroundColor = statusColors["오픈"]; // 기본 파랑
+
+    if (event.timeSlot && statusColors[event.timeSlot]) {
+      backgroundColor = statusColors[event.timeSlot];
+    }
+
+    const style = {
+      backgroundColor,
+      borderRadius: "4px",
+      opacity: 0.9,
+      color: "white",
+      border: "none",
+      display: "block",
+    };
+
+    return { style };
+  };
 
   return (
     <>
@@ -285,6 +326,25 @@ const handleShowMore = (events, date) => {
       </style>
 
       <div className="container">
+
+        {/* 상태별 색깔 표시 */}
+        <div style={{ display: "flex", gap: 16, marginBottom: 20, alignItems: "center" }}>
+          {Object.entries(statusColors).map(([status, color]) => (
+            <div key={status} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div
+                style={{
+                  width: 16,
+                  height: 16,
+                  backgroundColor: color,
+                  borderRadius: 4,
+                  border: "1px solid #999",
+                }}
+              />
+              <span>{status}</span>
+            </div>
+          ))}
+        </div>
+
         <div className={`calendar-wrapper ${loading ? "loading" : ""}`}>
           <Calendar
             localizer={localizer}
@@ -294,12 +354,13 @@ const handleShowMore = (events, date) => {
             defaultView="month"
             views={["month"]}
             selectable
-            onSelectSlot={handleSelectSlot}  // 빈 날짜 클릭시 호출
+            onSelectSlot={handleSelectSlot} // 빈 날짜 클릭시 호출
             onSelectEvent={handleSelectEvent} // 이벤트 클릭시 호출
             onNavigate={handleNavigate}
             style={{ height: "100%" }}
             messages={messages}
             onShowMore={handleShowMore}
+            eventPropGetter={eventStyleGetter}
           />
         </div>
 
@@ -333,7 +394,7 @@ const handleShowMore = (events, date) => {
               transform: "translateX(-50%)",
             }}
           >
-            <button className="action-button" onClick={() => setShowForm(true)}>
+            <button className="action-button" onClick={openForm}>
               신청하기
             </button>
           </div>
@@ -360,6 +421,28 @@ const handleShowMore = (events, date) => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
+
+              <label>신청 내용</label>
+              <div style={{ display: "flex", gap: "8px", marginBottom: "1em" }}>
+                {["휴무신청", "오픈신청", "미들신청", "마감신청"].map((slot) => (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => setTimeSlot(slot)}
+                    style={{
+                      padding: "8px 16px",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px",
+                      backgroundColor: timeSlot === slot ? "#007BFF" : "#fff",
+                      color: timeSlot === slot ? "#fff" : "#000",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+
               <label>사유</label>
               <textarea
                 value={reason}
@@ -398,6 +481,8 @@ const handleShowMore = (events, date) => {
                 value={moment(selectedEvent.start).format("YYYY-MM-DD")}
                 readOnly
               />
+              <label>신청 내용</label>
+              <input type="text" value={selectedEvent.timeSlot || "선택 안됨"} readOnly />
               <label>사유</label>
               <textarea value={selectedEvent.reason} readOnly rows={3} />
               <label>대체 방안</label>
@@ -431,7 +516,7 @@ const handleShowMore = (events, date) => {
                         handleSelectEvent(evt);
                       }}
                     >
-                      <strong>{evt.username}</strong> - {evt.reason}
+                      <strong>{evt.username}</strong> - {evt.timeSlot || "시간 미지정"}
                     </li>
                   ))
                 ) : (
