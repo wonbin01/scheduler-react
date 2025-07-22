@@ -1,10 +1,11 @@
-// 기존 import 구문은 그대로 유지
+// ScheduleApplyPage.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import axios from "axios";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./ScheduleApplyPage.css"; // CSS import
 
 const localizer = momentLocalizer(moment);
 const messages = {
@@ -27,10 +28,18 @@ function ScheduleApplyPage() {
   const [etc, setEtc] = useState("");
   const [username, setUsername] = useState("알수없음");
   const [userID, setUserID] = useState(null);
+  const [timeSlot, setTimeSlot] = useState("");
+  const [applyId, setApplyId] = useState(null);
 
-  // --- 추가된 상태 ---
   const [selectedDateEvents, setSelectedDateEvents] = useState([]);
   const [showDateEventsModal, setShowDateEventsModal] = useState(false);
+
+  const statusColors = {
+    휴무신청: "#757575",
+    오픈신청: "#1976d2",
+    미들신청: "#f57c00",
+    마감신청: "#d32f2f",
+  };
 
   useEffect(() => {
     axios
@@ -50,17 +59,20 @@ function ScheduleApplyPage() {
     axios
       .get(`/schedule/apply/${year}/${month}`, { withCredentials: true })
       .then((res) => {
-        const result = res.data.map((item) => {
-          const start = new Date(item.applyDate);
-          const end = new Date(start);
-          end.setHours(end.getHours() + 1);
-          return {
-            ...item,
-            start,
-            end,
-            title: `ID: ${item.usernumber}`,
-          };
-        });
+        const result = res.data
+          .sort((a, b) => a.applyId - b.applyId)
+          .map((item) => {
+            const start = new Date(item.applyDate);
+            const end = new Date(start);
+            end.setHours(end.getHours() + 1);
+            return {
+              ...item,
+              start,
+              end,
+              title: `${item.username}`,
+              applyId: item.applyId,
+            };
+          });
         setEvents(result);
       })
       .catch((err) => {
@@ -71,7 +83,6 @@ function ScheduleApplyPage() {
       });
   };
 
-  // 달력 빈 날짜 클릭 -> 해당 날짜 이벤트 리스트 모달 열기
   const handleSelectSlot = (slotInfo) => {
     const dateStr = moment(slotInfo.start).format("YYYY-MM-DD");
     const eventsOfDate = events.filter(
@@ -79,14 +90,23 @@ function ScheduleApplyPage() {
     );
     setSelectedDateEvents(eventsOfDate);
     setShowDateEventsModal(true);
-    setSelectedEvent(null); // 기존 상세 이벤트 모달 닫기
+    setSelectedEvent(null);
   };
 
-  // 기존 이벤트 클릭 -> 상세 정보 모달
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setShowForm(false);
-    setShowDateEventsModal(false); // 이벤트 리스트 모달 닫기
+    setShowDateEventsModal(false);
+  };
+
+  const openForm = () => {
+    setApplyId(null);
+    setSelectedDate("");
+    setTimeSlot("");
+    setReason("");
+    setAlternative("");
+    setEtc("");
+    setShowForm(true);
   };
 
   const handleAddEvent = () => {
@@ -98,27 +118,48 @@ function ScheduleApplyPage() {
       alert("사유를 입력해주세요.");
       return;
     }
+    if (!timeSlot) {
+      alert("신청내용을 선택해주세요.");
+      return;
+    }
 
-    const newEvent = {
+    const eventPayload = {
+      applyId,
       usernumber: userID,
       username,
       applyDate: selectedDate,
+      timeSlot,
       reason,
       alternativePlan: alternative,
       etc,
     };
 
-    axios
-      .post("/schedule/apply", newEvent, { withCredentials: true })
-      .then(() => {
-        const m = moment(currentViewDate);
-        fetchEvents(m.year(), m.month() + 1);
-        closeModal();
-      })
-      .catch((err) => {
-        alert("신청 중 오류 발생");
-        console.error(err);
-      });
+    const m = moment(currentViewDate);
+
+    if (applyId) {
+      axios
+        .put(`/schedule/apply/${applyId}`, eventPayload, { withCredentials: true })
+        .then(() => {
+          alert("수정되었습니다.");
+          fetchEvents(m.year(), m.month() + 1);
+          closeModal();
+        })
+        .catch((err) => {
+          alert("수정 중 오류 발생");
+          console.error(err);
+        });
+    } else {
+      axios
+        .post("/schedule/apply", eventPayload, { withCredentials: true })
+        .then(() => {
+          fetchEvents(m.year(), m.month() + 1);
+          closeModal();
+        })
+        .catch((err) => {
+          alert("신청 중 오류 발생");
+          console.error(err);
+        });
+    }
   };
 
   const closeModal = () => {
@@ -139,152 +180,76 @@ function ScheduleApplyPage() {
   };
 
   const handleCloseEventDetail = () => {
-  if (selectedDateEvents.length > 0) {
-    setSelectedEvent(null);
-    setShowDateEventsModal(true);
-  } else {
-    closeModal(); // 기존대로 닫기
-  }
-};
+    if (selectedDateEvents.length > 0) {
+      setSelectedEvent(null);
+      setShowDateEventsModal(true);
+    } else {
+      closeModal();
+    }
+  };
 
-const handleShowMore = (events, date) => {
-  setSelectedDateEvents(events);
-  setShowDateEventsModal(true);
-};
+  const handleShowMore = (events, date) => {
+    setSelectedDateEvents(events);
+    setShowDateEventsModal(true);
+  };
+
+  const handleEdit = () => {
+    setApplyId(selectedEvent.applyId);
+    setSelectedDate(moment(selectedEvent.start).format("YYYY-MM-DD"));
+    setTimeSlot(selectedEvent.timeSlot);
+    setReason(selectedEvent.reason);
+    setAlternative(selectedEvent.alternativePlan);
+    setEtc(selectedEvent.etc);
+    setSelectedEvent(null);
+    setShowForm(true);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("정말 삭제하시겠습니까?")) {
+      axios
+        .delete(`/schedule/apply/${selectedEvent.applyId}`, { withCredentials: true })
+        .then(() => {
+          alert("삭제되었습니다.");
+          fetchEvents(currentViewDate.year(), currentViewDate.month() + 1);
+          setSelectedEvent(null);
+        })
+        .catch(() => {
+          alert("삭제 실패했습니다.");
+        });
+    }
+  };
+
+  const eventStyleGetter = (event) => {
+    let backgroundColor = statusColors["오픈신청"];
+
+    if (event.timeSlot && statusColors[event.timeSlot]) {
+      backgroundColor = statusColors[event.timeSlot];
+    }
+
+    const style = {
+      backgroundColor,
+      borderRadius: "4px",
+      opacity: 0.9,
+      color: "white",
+      border: "none",
+      display: "block",
+    };
+
+    return { style };
+  };
 
   return (
     <>
-      <style>
-        {`
-        .container {
-          padding: 20px;
-          max-width: 900px;
-          margin: 0 auto;
-          background-color: #f9f9f9;
-          min-height: 100vh;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        .calendar-wrapper {
-          height: 600px;
-          border-radius: 12px;
-          border: 1px solid #ddd;
-          background-color: #fff;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-          transition: opacity 0.3s ease;
-        }
-
-        .calendar-wrapper.loading {
-          opacity: 0.5;
-        }
-
-        .centered-button-wrapper {
-          display: flex;
-          justify-content: center;
-          margin-top: 24px;
-        }
-
-        .action-button {
-          background-color: #1e88e5;
-          color: white;
-          padding: 12px 20px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 16px;
-        }
-
-        .action-button:hover {
-          background-color: #1565c0;
-        }
-
-        .modal {
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          background: #fff;
-          padding: 24px;
-          z-index: 1001;
-          border-radius: 12px;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-          width: 90%;
-          max-width: 480px;
-          max-height: 80vh;
-          overflow-y: auto;
-        }
-
-        .modal-close {
-          position: absolute;
-          top: 10px;
-          right: 16px;
-          background: transparent;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-        }
-
-        .modal input, .modal textarea {
-          width: 100%;
-          padding: 10px;
-          margin-bottom: 16px;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-          box-sizing: border-box;
-          font-size: 14px;
-        }
-
-        .modal input[readonly] {
-          background-color: #f0f0f0;
-        }
-
-        .modal button {
-          background-color: #1e88e5;
-          color: white;
-          padding: 10px 20px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 15px;
-        }
-
-        .modal button:hover {
-          background-color: #1565c0;
-        }
-
-        .backdrop {
-          position: fixed;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background-color: rgba(0,0,0,0.3);
-          z-index: 1000;
-        }
-
-        .loading-indicator {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          background: #eee;
-          padding: 6px 12px;
-          border-radius: 4px;
-          font-weight: 600;
-          font-size: 14px;
-        }
-
-        .event-list-item {
-          padding: 8px 12px;
-          border-bottom: 1px solid #ddd;
-          cursor: pointer;
-          transition: background-color 0.2s ease;
-        }
-        .event-list-item:hover {
-          background-color: #e3f2fd;
-        }
-      `}
-      </style>
-
       <div className="container">
+        <div className="status-color-wrapper">
+          {Object.entries(statusColors).map(([status, color]) => (
+            <div key={status} className="status-color-item">
+              <div className="status-color-box" style={{ backgroundColor: color }} />
+              <span>{status}</span>
+            </div>
+          ))}
+        </div>
+
         <div className={`calendar-wrapper ${loading ? "loading" : ""}`}>
           <Calendar
             localizer={localizer}
@@ -294,52 +259,32 @@ const handleShowMore = (events, date) => {
             defaultView="month"
             views={["month"]}
             selectable
-            onSelectSlot={handleSelectSlot}  // 빈 날짜 클릭시 호출
-            onSelectEvent={handleSelectEvent} // 이벤트 클릭시 호출
+            onSelectSlot={handleSelectSlot}
+            onSelectEvent={handleSelectEvent}
             onNavigate={handleNavigate}
             style={{ height: "100%" }}
             messages={messages}
             onShowMore={handleShowMore}
+            eventPropGetter={eventStyleGetter}
           />
         </div>
 
         {loading && <div className="loading-indicator">로딩 중...</div>}
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "20px",
-          }}
-        >
-          {/* 왼쪽: 이전으로 버튼 */}
-          <div>
-            <button
-              className="action-button"
-              style={{ backgroundColor: "#777" }}
-              onClick={() => navigate("/schedulePage")}
-            >
-              ← 이전으로
-            </button>
-          </div>
-
-          {/* 가운데: 신청하기 버튼 */}
-          <div
-            style={{
-              margin: "0 auto",
-              position: "absolute",
-              left: "50%",
-              transform: "translateX(-50%)",
-            }}
+        <div className="footer-buttons">
+          <button
+            className="action-button"
+            style={{ backgroundColor: "#777" }}
+            onClick={() => navigate("/schedulePage")}
           >
-            <button className="action-button" onClick={() => setShowForm(true)}>
-              신청하기
-            </button>
-          </div>
+            ← 이전으로
+          </button>
 
-          {/* 오른쪽: 빈 공간 확보용 */}
-          <div style={{ width: "100px" }}></div>
+          <button className="action-button" onClick={openForm}>
+            신청하기
+          </button>
+
+          <div style={{ width: "100px" }} />
         </div>
 
         {/* 신청 폼 모달 */}
@@ -360,12 +305,23 @@ const handleShowMore = (events, date) => {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
+
+              <label>신청 내용</label>
+              <div className="time-slot-buttons">
+                {["휴무신청", "오픈신청", "미들신청", "마감신청"].map((slot) => (
+                  <button
+                    key={slot}
+                    type="button"
+                    onClick={() => setTimeSlot(slot)}
+                    className={timeSlot === slot ? "selected" : ""}
+                  >
+                    {slot}
+                  </button>
+                ))}
+              </div>
+
               <label>사유</label>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-              />
+              <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} />
               <label>대체 방안</label>
               <textarea
                 value={alternative}
@@ -388,6 +344,16 @@ const handleShowMore = (events, date) => {
                 &times;
               </button>
               <h3>신청 정보</h3>
+              <h3 className="modal-header-with-time">
+                신청 정보
+                <small className="time-info">
+                  작성된 시간:{" "}
+                  {selectedEvent.createAt
+                    ? moment(selectedEvent.createAt).format("YYYY-MM-DD HH:mm:ss") +
+                      (selectedEvent.updatedAt ? " (수정됨)" : "")
+                    : "정보 없음"}
+                </small>
+              </h3>
               <label>신청자</label>
               <input type="text" value={selectedEvent.username} readOnly />
               <label>신청자 ID</label>
@@ -398,12 +364,23 @@ const handleShowMore = (events, date) => {
                 value={moment(selectedEvent.start).format("YYYY-MM-DD")}
                 readOnly
               />
+              <label>신청 내용</label>
+              <input type="text" value={selectedEvent.timeSlot || "선택 안됨"} readOnly />
               <label>사유</label>
               <textarea value={selectedEvent.reason} readOnly rows={3} />
               <label>대체 방안</label>
               <textarea value={selectedEvent.alternativePlan} readOnly rows={3} />
               <label>기타</label>
               <textarea value={selectedEvent.etc} readOnly rows={2} />
+
+              {selectedEvent.usernumber === userID && (
+                <div className="modal-button-group">
+                  <button onClick={handleEdit}>수정</button>
+                  <button onClick={handleDelete} className="delete-button">
+                    삭제
+                  </button>
+                </div>
+              )}
             </div>
             <div className="backdrop" onClick={handleCloseEventDetail} />
           </>
@@ -421,7 +398,7 @@ const handleShowMore = (events, date) => {
                   ? moment(selectedDateEvents[0].start).format("YYYY-MM-DD") + " 신청 내역"
                   : "신청 내역 없음"}
               </h3>
-              <ul style={{ maxHeight: "60vh", overflowY: "auto", padding: 0, listStyle: "none" }}>
+              <ul className="event-list">
                 {selectedDateEvents.length > 0 ? (
                   selectedDateEvents.map((evt, idx) => (
                     <li
@@ -431,7 +408,7 @@ const handleShowMore = (events, date) => {
                         handleSelectEvent(evt);
                       }}
                     >
-                      <strong>{evt.username}</strong> - {evt.reason}
+                      <strong>{evt.username}</strong> - {evt.timeSlot || "시간 미지정"}
                     </li>
                   ))
                 ) : (
