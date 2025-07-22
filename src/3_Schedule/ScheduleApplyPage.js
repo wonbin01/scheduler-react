@@ -28,6 +28,7 @@ function ScheduleApplyPage() {
   const [username, setUsername] = useState("알수없음");
   const [userID, setUserID] = useState(null);
   const [timeSlot, setTimeSlot] = useState("");
+  const [applyId, setApplyId] = useState(null);
 
   // --- 추가된 상태 ---
   const [selectedDateEvents, setSelectedDateEvents] = useState([]);
@@ -53,6 +54,7 @@ function ScheduleApplyPage() {
       });
   }, [navigate]);
 
+  
   const fetchEvents = (year, month) => {
     setLoading(true);
     axios
@@ -67,6 +69,7 @@ function ScheduleApplyPage() {
             start,
             end,
             title: `ID: ${item.username}`,
+            applyId: item.applyId,
           };
         });
         setEvents(result);
@@ -173,6 +176,33 @@ function ScheduleApplyPage() {
     setSelectedDateEvents(events);
     setShowDateEventsModal(true);
   };
+  const handleEdit = () => {
+  // 기존 신청 내용을 폼에 넣고 수정 모달 열기
+  setApplyId(selectedEvent.applyId); // applyId 저장 (수정용)
+  setSelectedDate(moment(selectedEvent.start).format("YYYY-MM-DD"));
+  setTimeSlot(selectedEvent.timeSlot);
+  setReason(selectedEvent.reason);
+  setAlternative(selectedEvent.alternativePlan);
+  setEtc(selectedEvent.etc);
+  setSelectedEvent(null); // 기존 이벤트 상세 모달 닫기
+  setShowForm(true); // 수정 폼 열기
+};
+
+const handleDelete = () => {
+  if (window.confirm("정말 삭제하시겠습니까?")) {
+    axios
+      .delete(`/schedule/apply/${selectedEvent.applyId}`, { withCredentials: true })
+      .then(() => {
+        alert("삭제되었습니다.");
+        fetchEvents(currentViewDate.year(), currentViewDate.month() + 1);
+        setSelectedEvent(null);
+      })
+      .catch(() => {
+        alert("삭제 실패했습니다.");
+      });
+  }
+};
+
 
   const eventStyleGetter = (event) => {
     let backgroundColor = statusColors["오픈"]; // 기본 파랑
@@ -189,6 +219,7 @@ function ScheduleApplyPage() {
       border: "none",
       display: "block",
     };
+    
 
     return { style };
   };
@@ -464,35 +495,46 @@ function ScheduleApplyPage() {
         )}
 
         {/* 이벤트 상세 모달 */}
-        {selectedEvent && (
-          <>
-            <div className="modal">
-              <button className="modal-close" onClick={handleCloseEventDetail}>
-                &times;
-              </button>
-              <h3>신청 정보</h3>
-              <label>신청자</label>
-              <input type="text" value={selectedEvent.username} readOnly />
-              <label>신청자 ID</label>
-              <input type="text" value={selectedEvent.usernumber} readOnly />
-              <label>신청 날짜</label>
-              <input
-                type="text"
-                value={moment(selectedEvent.start).format("YYYY-MM-DD")}
-                readOnly
-              />
-              <label>신청 내용</label>
-              <input type="text" value={selectedEvent.timeSlot || "선택 안됨"} readOnly />
-              <label>사유</label>
-              <textarea value={selectedEvent.reason} readOnly rows={3} />
-              <label>대체 방안</label>
-              <textarea value={selectedEvent.alternativePlan} readOnly rows={3} />
-              <label>기타</label>
-              <textarea value={selectedEvent.etc} readOnly rows={2} />
-            </div>
-            <div className="backdrop" onClick={handleCloseEventDetail} />
-          </>
-        )}
+{selectedEvent && (
+  <>
+    <div className="modal">
+      <button className="modal-close" onClick={handleCloseEventDetail}>
+        &times;
+      </button>
+      <h3>신청 정보</h3>
+      <label>신청자</label>
+      <input type="text" value={selectedEvent.username} readOnly />
+      <label>신청자 ID</label>
+      <input type="text" value={selectedEvent.usernumber} readOnly />
+      <label>신청 날짜</label>
+      <input
+        type="text"
+        value={moment(selectedEvent.start).format("YYYY-MM-DD")}
+        readOnly
+      />
+      <label>신청 내용</label>
+      <input type="text" value={selectedEvent.timeSlot || "선택 안됨"} readOnly />
+      <label>사유</label>
+      <textarea value={selectedEvent.reason} readOnly rows={3} />
+      <label>대체 방안</label>
+      <textarea value={selectedEvent.alternativePlan} readOnly rows={3} />
+      <label>기타</label>
+      <textarea value={selectedEvent.etc} readOnly rows={2} />
+
+      {/* 본인 신청일 때만 수정/삭제 버튼 보이도록 */}
+      {selectedEvent.usernumber === userID && (
+        <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+          <button onClick={handleEdit}>수정</button>
+          <button onClick={handleDelete} style={{ backgroundColor: "#d32f2f", color: "white" }}>
+            삭제
+          </button>
+        </div>
+      )}
+    </div>
+    <div className="backdrop" onClick={handleCloseEventDetail} />
+  </>
+)}
+
 
         {/* 날짜별 이벤트 리스트 모달 */}
         {showDateEventsModal && (
