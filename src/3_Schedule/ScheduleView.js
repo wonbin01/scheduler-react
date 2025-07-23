@@ -15,10 +15,10 @@ const messages = {
 };
 
 const statusColors = {
-  휴무신청: "#757575",
-  오픈신청: "#1976d2",
-  미들신청: "#f57c00",
-  마감신청: "#d32f2f",
+  매점: "#757575",
+  엔젤: "#FFC0CB",
+  웰컴: "#1976d2",
+  검표: "#f57c00",
 };
 
 const initialSchedule = [
@@ -42,26 +42,30 @@ const [currentViewDate, setCurrentViewDate] = useState(null);
   const [schedules, setSchedules] = useState(initialSchedule);
 
   useEffect(() => {
-  const now = moment();
-  setCurrentViewDate(now);
-
   axios
     .get("/scheduleView", { withCredentials: true })
     .then((res) => {
       setUserName(res.data.name);
       setUserID(res.data.id);
-      fetchEvents(now.year(), now.month() + 1);  // 여기서 일정 불러오기 호출
     })
     .catch(() => {
       navigate("/");
     });
 }, [navigate]);
 
+// 2) userID가 세팅된 후에 일정 불러오기 실행
+useEffect(() => {
+  if (userID) {
+    const now = moment();
+    setCurrentViewDate(now);
+    fetchEvents(now.year(), now.month() + 1);
+  }
+}, [userID]);
+
   useEffect(() => {
     axios
       .get("/member/all", { withCredentials: true })
       .then((res) => {
-        console.log("memberList:", res.data);
         setMemberList(res.data);
       })
       .catch((err) => {
@@ -74,6 +78,7 @@ const [currentViewDate, setCurrentViewDate] = useState(null);
     updated[index][field] = value;
     setSchedules(updated);
   };
+
 
 
   // 새 스케줄 항목 추가
@@ -125,22 +130,32 @@ if (currentViewDate) {
 
   const fetchEvents = (year, month) => {
   setLoading(true);
-  console.log("fetchEvents 호출 - year:", year, "month:", month);
   axios
     .get(`/scheduleview/${year}/${month}`, { withCredentials: true })
     .then((res) => {
-      console.log("서버에서 받은 일정 데이터:", res.data);  // 여기서 확인
-      const result = res.data.map((item) => {
-        const start = new Date(`${item.date}T${item.startTime}:00`);
-        const end = new Date(`${item.date}T${item.endTime}:00`);
+      let result = res.data.map((item) => {
+        // 날짜 가공
+        const start = new Date(`${item.applyDate}T${item.startTime}:00`);
+        const end = new Date(`${item.applyDate}T${item.endTime}:00`);
+        const isMySchedule = String(item.userNumber) === String(userID);
+
         return {
           ...item,
           start,
           end,
-          title: item.userName,
+          title: isMySchedule ? item.userName || item.username || "내 스케줄" : "",
+          isMySchedule,
         };
       });
-      setEvents(result);
+
+      // 내 이벤트가 먼저 오도록 정렬
+      result = result.sort((a, b) => {
+        if (a.isMySchedule && !b.isMySchedule) return -1;
+        if (!a.isMySchedule && b.isMySchedule) return 1;
+        return 0;
+      });
+
+      setEvents(result); // 정렬된 이벤트로 상태 변경
     })
     .catch((err) => {
       console.error("일정 불러오기 실패", err);
@@ -150,6 +165,8 @@ if (currentViewDate) {
       setLoading(false);
     });
 };
+
+
 
 
   const handleSelectEvent = (event) => {
@@ -189,39 +206,94 @@ if (currentViewDate) {
     setSchedules(initialSchedule); // 스케줄 초기화
   };
 
-  
+  const generateTimeOptions = () => {
+  const options = [];
+  for (let h = 0; h < 24; h++) {
+    options.push(`${String(h).padStart(2, "0")}:00`);
+    options.push(`${String(h).padStart(2, "0")}:30`);
+  }
+  return options;
+};
+
+  const timeOptions = generateTimeOptions();
+
+  const handleDelete = async () => {
+  try {
+    await axios.delete(`/scheduleview/${selectedEvent.scheduleEventId}`);
+    alert("삭제되었습니다.");
+    closeModal();
+    if (currentViewDate) {
+  fetchEvents(currentViewDate.year(), currentViewDate.month() + 1);
+}
+  } catch (error) {
+    console.error("삭제 실패:", error);
+    alert("삭제 중 문제가 발생했습니다.");
+  }
+};
+
+  const isAllSchedulesValid = (schedules) => {
+  return schedules.every((s) =>
+    s.userNumber &&
+    s.applyDate &&
+    s.position &&
+    s.startTime &&
+    s.endTime
+  );
+};
 
   const eventStyleGetter = (event) => {
-    let backgroundColor = statusColors["오픈신청"];
-    if (event.timeSlot && statusColors[event.timeSlot]) {
-      backgroundColor = statusColors[event.timeSlot];
-    }
+  if (!event.isMySchedule) return { style: { display: "none" } };
 
-    return {
-      style: {
-        backgroundColor,
-        borderRadius: "4px",
-        opacity: 0.9,
-        color: "white",
-        border: "none",
-        display: "block",
-      },
-    };
+  // position에 따른 색상 가져오기 (기본 색상 지정 가능)
+  let backgroundColor = statusColors[event.position] || "#1976d2"; // 기본 파랑색
+
+  return {
+    style: {
+      backgroundColor,
+      borderRadius: "4px",
+      opacity: 0.9,
+      color: "white",
+      border: "none",
+      display: "block",
+    },
   };
+};
 
   return (
     <div className="container">
-      <div className="status-color-wrapper">
-        {Object.entries(statusColors).map(([status, color]) => (
-          <div key={status} className="status-color-item">
-            <div
-              className="status-color-box"
-              style={{ backgroundColor: color }}
-            />
-            <span>{status}</span>
-          </div>
-        ))}
-      </div>
+    {/* 뒤로가기 버튼 추가 */}
+    <button
+      onClick={() => navigate("/schedulePage")}
+      style={{
+        marginBottom: "10px",
+        padding: "6px 12px",
+        borderRadius: "4px",
+        border: "1px solid #1976d2",
+        backgroundColor: "white",
+        color: "#1976d2",
+        cursor: "pointer",
+      }}
+    >
+      뒤로가기
+    </button>
+
+    <h2>Schedule</h2>
+    <div style={{ display: "flex", gap: "12px", marginBottom: "12px", flexWrap: "wrap" }}>
+  {Object.entries(statusColors).map(([position, color]) => (
+    <div key={position} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+      <div
+        style={{
+          width: "16px",
+          height: "16px",
+          backgroundColor: color,
+          borderRadius: "4px",
+          border: "1px solid #ccc",
+        }}
+      />
+      <span style={{ fontSize: "14px" }}>{position}</span>
+    </div>
+  ))}
+</div>
 
       <div className={`calendar-wrapper ${loading ? "loading" : ""}`}>
         <Calendar
@@ -260,46 +332,72 @@ if (currentViewDate) {
             }}
             onClick={() => setShowApplyModal(true)}
           >
-            신청하기
+            등록하기
           </button>
+          
         </div>
       )}
+
+      
 
       {loading && <div className="loading-indicator">로딩 중...</div>}
 
       {/* 날짜별 이벤트 리스트 모달 */}
       {showDateEventsModal && (
-        <>
-          <div className="modal">
-            <button className="modal-close" onClick={closeModal}>
-              &times;
-            </button>
-            <h3>
-              {selectedDateEvents.length > 0
-                ? moment(selectedDateEvents[0].start).format("YYYY-MM-DD") +
-                  " 스캐줄 내역"
-                : "등록 내역 없음"}
-            </h3>
-            <ul className="event-list">
-              {selectedDateEvents.length > 0 ? (
-                selectedDateEvents.map((evt, idx) => (
+  <>
+    <div className="modal">
+      <button className="modal-close" onClick={closeModal}>
+        &times;
+      </button>
+      <h3>
+        {selectedDateEvents.length > 0
+          ? moment(selectedDateEvents[0].start).format("YYYY-MM-DD") + " 스케줄 내역"
+          : "등록 내역 없음"}
+      </h3>
+
+      {selectedDateEvents.length > 0 ? (
+        Object.entries(
+          selectedDateEvents.reduce((groups, evt) => {
+            const pos = evt.position || "미지정";
+            if (!groups[pos]) groups[pos] = [];
+            groups[pos].push(evt);
+            return groups;
+          }, {})
+        ).map(([position, events]) => {
+          // 출근시간 기준 오름차순 정렬 (시간 없으면 뒤로)
+          const sortedEvents = events.slice().sort((a, b) => {
+            if (!a.startTime) return 1;
+            if (!b.startTime) return -1;
+            return a.startTime.localeCompare(b.startTime);
+          });
+
+          return (
+            <div key={position} style={{ marginBottom: "16px" }}>
+              <h4>{position} 포지션</h4>
+              <ul className="event-list">
+                {sortedEvents.map((evt, idx) => (
                   <li
                     key={idx}
                     className="event-list-item"
                     onClick={() => handleSelectEvent(evt)}
+                    style={{ cursor: "pointer" }}
                   >
-                    <strong>{evt.username}</strong> -{" "}
-                    {evt.timeSlot || "시간 미지정"}
+                    <strong>{evt.userName || evt.username}</strong> - 출근시간: {evt.startTime || "미지정"} / 퇴근시간: {evt.endTime || "미지정"}
                   </li>
-                ))
-              ) : (
-                <li>등록 내역이 없습니다.</li>
-              )}
-            </ul>
-          </div>
-          <div className="backdrop" onClick={closeModal} />
-        </>
+                ))}
+              </ul>
+            </div>
+          );
+        })
+      ) : (
+        <li>등록 내역이 없습니다.</li>
       )}
+    </div>
+    <div className="backdrop" onClick={closeModal} />
+  </>
+)}
+
+
 
       {/* 스케줄 등록 모달 */}
     <div className="container">
@@ -385,29 +483,35 @@ if (currentViewDate) {
 
           {/* 출근시간 */}
           <div style={{ marginBottom: "8px" }}>
-            <label style={{ display: "block", marginBottom: "4px" }}>출근 시간</label>
-            <input
-              type="time"
-              className="input-style"
-              value={schedule.startTime}
-              onChange={(e) =>
-                handleScheduleChange(idx, "startTime", e.target.value)
-              }
-            />
-          </div>
+  <label style={{ display: "block", marginBottom: "4px" }}>출근 시간</label>
+  <select
+    className="input-style"
+    value={schedule.startTime}
+    onChange={(e) => handleScheduleChange(idx, "startTime", e.target.value)}
+  >
+    {timeOptions.map((time) => (
+      <option key={time} value={time}>
+        {time}
+      </option>
+    ))}
+  </select>
+</div>
 
           {/* 퇴근시간 */}
           <div style={{ marginBottom: "8px" }}>
-            <label style={{ display: "block", marginBottom: "4px" }}>퇴근 시간</label>
-            <input
-              type="time"
-              className="input-style"
-              value={schedule.endTime}
-              onChange={(e) =>
-                handleScheduleChange(idx, "endTime", e.target.value)
-              }
-            />
-          </div>
+  <label style={{ display: "block", marginBottom: "4px" }}>퇴근 시간</label>
+  <select
+    className="input-style"
+    value={schedule.endTime}
+    onChange={(e) => handleScheduleChange(idx, "endTime", e.target.value)}
+  >
+    {timeOptions.map((time) => (
+      <option key={time} value={time}>
+        {time}
+      </option>
+    ))}
+  </select>
+</div>
         </div>
       ))}
 
@@ -427,7 +531,20 @@ if (currentViewDate) {
       </button>
 
       <div style={{ textAlign: "right" }}>
-        <button onClick={handleSubmitSchedules}>제출</button>
+        <button
+  onClick={handleSubmitSchedules}
+  disabled={!isAllSchedulesValid(schedules)}
+  style={{
+    backgroundColor: isAllSchedulesValid(schedules) ? "#1976d2" : "#ccc",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    padding: "8px 16px",
+    cursor: isAllSchedulesValid(schedules) ? "pointer" : "not-allowed",
+  }}
+>
+  제출
+</button>
       </div>
     </div>
     <div className="backdrop" onClick={closeApplyModal} />
@@ -441,40 +558,67 @@ if (currentViewDate) {
 
       {/* 이벤트 상세 모달 */}
       {selectedEvent && (
-        <>
-          <div className="modal">
-            <button className="modal-close" onClick={closeModal}>
-              &times;
-            </button>
-            <h3>신청 정보</h3>
-            <label>신청자</label>
-            <input type="text" value={selectedEvent.username} readOnly className="input-style" />
-            <label>신청자 ID</label>
-            <input type="text" value={selectedEvent.usernumber} readOnly className="input-style" />
-            <label>신청 날짜</label>
-            <input
-              type="text"
-              value={moment(selectedEvent.start).format("YYYY-MM-DD")}
-              readOnly
-              className="input-style"
-            />
-            <label>신청 내용</label>
-            <input
-              type="text"
-              value={selectedEvent.timeSlot || "선택 안됨"}
-              readOnly
-              className="input-style"
-            />
-            <label>사유</label>
-            <textarea value={selectedEvent.reason} readOnly rows={3} className="input-style" />
-            <label>대체 방안</label>
-            <textarea value={selectedEvent.alternativePlan} readOnly rows={3} className="input-style" />
-            <label>기타</label>
-            <textarea value={selectedEvent.etc} readOnly rows={2} className="input-style" />
-          </div>
-          <div className="backdrop" onClick={closeModal} />
-        </>
-      )}
+  <>
+    <div className="modal">
+      <button className="modal-close" onClick={closeModal}>
+        &times;
+      </button>
+      <h3>등록 정보</h3>
+      <label>이름</label>
+      <input type="text" value={selectedEvent.userName} readOnly className="input-style" />
+      <label>사번</label>
+      <input type="text" value={selectedEvent.userNumber} readOnly className="input-style" />
+      <label>신청 날짜</label>
+      <input
+        type="text"
+        value={moment(selectedEvent.start).format("YYYY-MM-DD")}
+        readOnly
+        className="input-style"
+      />
+      <label>포지션</label>
+      <input
+        type="text"
+        value={selectedEvent.position || "선택 안됨"}
+        readOnly
+        className="input-style"
+      />
+      <label>출근 시간</label>
+      <input
+        type="text"
+        value={selectedEvent.startTime || "선택 안됨"}
+        readOnly
+        className="input-style"
+      />
+      <label>퇴근 시간</label>
+      <input
+        type="text"
+        value={selectedEvent.endTime || "선택 안됨"}
+        readOnly
+        className="input-style"
+      />
+
+      {/* 삭제하기 버튼 추가 */}
+      {userID === 202126845 && (
+  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px" }}>
+    <button
+      onClick={handleDelete}
+      style={{
+        backgroundColor: "#e53935",
+        color: "white",
+        border: "none",
+        padding: "8px 12px",
+        borderRadius: "4px",
+        cursor: "pointer",
+      }}
+    >
+      삭제하기
+    </button>
+  </div>
+)}
+    </div>
+    <div className="backdrop" onClick={closeModal} />
+  </>
+)}
     </div>
   );
 }
