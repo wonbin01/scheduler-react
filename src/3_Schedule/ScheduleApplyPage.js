@@ -43,7 +43,7 @@ function ScheduleApplyPage() {
 
   useEffect(() => {
     axios
-      .get("/schedulePage", { withCredentials: true })
+      .get("/scheduleApplyPage", { withCredentials: true })
       .then((res) => {
         setUsername(res.data.name);
         setUserID(res.data.id);
