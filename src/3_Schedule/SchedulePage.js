@@ -1,10 +1,25 @@
-// schedulePage.js
-import React from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
 function SchedulePage() {
   const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
+    const [userName, setUserName] = useState("");
 
+    //session 확인하는 부분 -> 만약 세션이 없으면 홈으로 이동
+  useEffect(() => {
+    axios.get("/home", { withCredentials: true })
+      .then(response => {
+        setUserId(response.data.id);
+        setUserName(response.data.name);
+        setLoading(false);
+      })
+      .catch(error => {
+        navigate("/");
+      });
+  }, [navigate]);
   return (
     <div style={styles.container}>
       {/* 왼쪽 상단에 이전 버튼 */}

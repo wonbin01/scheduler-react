@@ -207,6 +207,32 @@
   color: white !important;
 }
 
+/* 공통 input, select 스타일 통일 */
+.input-style, select {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1.5px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+  margin-top: 4px;
+}
+
+.input-style:focus, select:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 4px rgba(25, 118, 210, 0.4);
+}
+
+select {
+  appearance: none;
+  background: white url("data:image/svg+xml;utf8,<svg fill='gray' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") no-repeat right 12px center;
+  background-size: 16px 16px;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
 /* ------------------ 🔽 반응형 웹 추가 부분 ------------------ */
 @media (max-width: 768px) {
   .calendar-wrapper {
