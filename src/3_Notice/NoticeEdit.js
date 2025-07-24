@@ -10,17 +10,17 @@ function NoticeEdit() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`/notice/${category}/${id}`, { withCredentials: true })
-      .then(res => {
-        setTitle(res.data.title);
-        setContent(res.data.content);
-      })
-      .catch(err => {
-        alert("게시글 정보를 불러오지 못했습니다.");
-        navigate(`/notice/${category}`);
-      })
-      .finally(() => setLoading(false));
-  }, [category, id, navigate]);
+  axios.get(`/notice/${category}/${id}`, { withCredentials: true })
+    .then(res => {
+      setTitle(res.data.title || "");
+      setContent(res.data.content || "");
+    })
+    .catch(err => {
+      alert("게시글 정보를 불러오지 못했습니다.");
+      navigate(`/notice/${category}`);
+    })
+    .finally(() => setLoading(false));
+}, [category, id, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
