@@ -23,6 +23,9 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
     .then(res => {
       setPost(res.data.post || res.data);          // post 데이터가 res.data.post에 있으면, 아니면 res.data 사용
       setUserInfo(res.data.userInfo || null);      // userInfo가 있으면 설정, 없으면 null 처리
+
+              console.log("프론트엔드 - 현재 로그인 사용자 정보 (userInfo):", res.data.userInfo);
+        console.log("프론트엔드 - 로그인 사용자 usernumber:", res.data.userInfo?.usernumber);
     })
     .catch(err => {
       if (err.response?.status === 401) {
@@ -154,6 +157,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
           {comments.map((comment) => {
   const isOwner = Number(userInfo?.usernumber) === Number(comment.userId);
   const isEditing = editCommentId === comment.comment_Id;
+
 
   return (
     <li key={comment.comment_Id} style={{
