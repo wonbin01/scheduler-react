@@ -10,7 +10,7 @@ function Home() {
   const [userName, setUserName] = useState("");
 
   useEffect(() => {
-    axios.get("/home", { withCredentials: true })
+    axios.get("/api/home", { withCredentials: true })
       .then(response => {
         setUserId(response.data.id);
         setUserName(response.data.name);
@@ -22,7 +22,7 @@ function Home() {
   }, [navigate]);
 
   const handleLogout = () => {
-    axios.post("/logout", {}, { withCredentials: true })
+    axios.post("/api/logout", {}, { withCredentials: true })
       .then(() => {
         alert("로그아웃 되었습니다.");
         navigate("/");
@@ -50,10 +50,10 @@ function Home() {
       {/* 🔽 버튼 그룹 */}
 
       <div className="button-group">
-        <button className="sky-button" onClick={() => navigate("/schedulePage")}>
+        <button className="sky-button" onClick={() => navigate("/api/schedulePage")}>
           스케줄
         </button>
-        <button className="sky-button" onClick={() => navigate("/notice")}>
+        <button className="sky-button" onClick={() => navigate("/api/notice")}>
           공지사항
         </button>
       </div>

@@ -15,7 +15,7 @@ function NoticeBoard() {
 
   useEffect(() => {
     setLoading(true);
-    axios.get(`/notice/${category}`, { withCredentials: true })
+    axios.get(`/api/notice/${category}`, { withCredentials: true })
       .then(res => {
         setPosts(res.data);
       })
@@ -37,7 +37,7 @@ function NoticeBoard() {
     return;
   }
 
-  axios.post(`/notice/${category}`, { title, content }, { withCredentials: true })
+  axios.post(`/api/notice/${category}`, { title, content }, { withCredentials: true })
     .then(() => {
       // 게시글 작성 성공 후, 다시 게시글 목록을 서버에서 받아오기
       return axios.get(`/notice/${category}`, { withCredentials: true });
@@ -54,7 +54,7 @@ function NoticeBoard() {
 };
 
   const handleClickPost = (postId) => {
-    navigate(`/notice/${category}/${postId}`);
+    navigate(`/api/notice/${category}/${postId}`);
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -73,7 +73,7 @@ function NoticeBoard() {
   >
     {/* 왼쪽 상단 절대 위치 뒤로가기 버튼 */}
     <button
-      onClick={() => navigate("/notice")}
+      onClick={() => navigate("/api/notice")}
       style={{
         position: "absolute",
         top: "1rem",

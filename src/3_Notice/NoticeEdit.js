@@ -10,14 +10,14 @@ function NoticeEdit() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  axios.get(`/notice/${category}/${id}`, { withCredentials: true })
+  axios.get(`/api/notice/${category}/${id}`, { withCredentials: true })
     .then(res => {
       setTitle(res.data.title || "");
       setContent(res.data.content || "");
     })
     .catch(err => {
       alert("게시글 정보를 불러오지 못했습니다.");
-      navigate(`/notice/${category}`);
+      navigate(`/api/notice/${category}`);
     })
     .finally(() => setLoading(false));
 }, [category, id, navigate]);
@@ -25,10 +25,10 @@ function NoticeEdit() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.put(`/notice/${category}/${id}`, { title, content }, { withCredentials: true })
+    axios.put(`/api/notice/${category}/${id}`, { title, content }, { withCredentials: true })
       .then(() => {
         alert("게시글이 수정되었습니다.");
-        navigate(`/notice/${category}/${id}`);
+        navigate(`/api/notice/${category}/${id}`);
       })
       .catch(() => {
         alert("게시글 수정 실패");

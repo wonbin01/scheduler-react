@@ -23,7 +23,7 @@ function Auth() {
     try {
       const res = await axios.post("/login", { usernumber, password }, { withCredentials: true });
       setMessage("로그인 성공: " + res.data);
-      navigate("/home");
+      navigate("/api/home");
     } catch (err) {
       setMessage("로그인 실패: " + (err.response?.data || "서버 오류"));
     }

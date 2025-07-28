@@ -19,13 +19,11 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
   const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
-  axios.get(`/notice/${category}/${id}`, { withCredentials: true })
+  axios.get(`/api/notice/${category}/${id}`, { withCredentials: true })
     .then(res => {
       setPost(res.data.post || res.data);          // post 데이터가 res.data.post에 있으면, 아니면 res.data 사용
       setUserInfo(res.data.userInfo || null);      // userInfo가 있으면 설정, 없으면 null 처리
 
-              console.log("프론트엔드 - 현재 로그인 사용자 정보 (userInfo):", res.data.userInfo);
-        console.log("프론트엔드 - 로그인 사용자 usernumber:", res.data.userInfo?.usernumber);
     })
     .catch(err => {
       if (err.response?.status === 401) {
@@ -39,7 +37,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
 
 
   useEffect(() => {
-    axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true })
+    axios.get(`/api/notice/${category}/${id}/comments`, { withCredentials: true })
       .then(res => setComments(res.data))
       .catch(() => {
         // 댓글 실패 시 무시
@@ -48,10 +46,10 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
 
   const handleDelete = () => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
-      axios.delete(`/notice/${category}/${id}`, { withCredentials: true })
+      axios.delete(`/api/notice/${category}/${id}`, { withCredentials: true })
         .then(() => {
           alert("게시글이 삭제되었습니다.");
-          navigate(`/notice/${category}`);
+          navigate(`/api/notice/${category}`);
         })
         .catch(() => {
           alert("게시글 삭제 실패");
@@ -60,7 +58,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
   };
 
   const handleEdit = () => {
-    navigate(`/notice/${category}/${id}/edit`);
+    navigate(`/api/notice/${category}/${id}/edit`);
   };
 
   const handleCommentSubmit = (e) => {
@@ -71,9 +69,9 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
       return;
     }
 
-    axios.post(`/notice/${category}/${id}/comments`, { comment_content: commentContent }, { withCredentials: true })
+    axios.post(`/api/notice/${category}/${id}/comments`, { comment_content: commentContent }, { withCredentials: true })
       .then(() => {
-        return axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true });
+        return axios.get(`/api/notice/${category}/${id}/comments`, { withCredentials: true });
       })
       .then(res => {
         setComments(res.data);
@@ -88,9 +86,9 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
   const handleCommentDelete = (commentId) => {
     if (!window.confirm("댓글을 삭제하시겠습니까?")) return;
 
-    axios.delete(`/notice/${category}/${id}/comments/${commentId}`, { withCredentials: true })
+    axios.delete(`/api/notice/${category}/${id}/comments/${commentId}`, { withCredentials: true })
       .then(() => {
-        return axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true });
+        return axios.get(`/api/notice/${category}/${id}/comments`, { withCredentials: true });
       })
       .then(res => setComments(res.data))
       .catch(() => alert("댓글 삭제 실패"));
@@ -102,11 +100,11 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
     return;
   }
 
-  axios.put(`/notice/${category}/${id}/comments/${commentId}`, {
+  axios.put(`/api/notice/${category}/${id}/comments/${commentId}`, {
     comment_content: editCommentContent
   }, { withCredentials: true })
     .then(() => {
-      return axios.get(`/notice/${category}/${id}/comments`, { withCredentials: true });
+      return axios.get(`/api/notice/${category}/${id}/comments`, { withCredentials: true });
     })
     .then(res => {
       setComments(res.data);
@@ -294,7 +292,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
         <button
-          onClick={() => navigate(`/notice/${category}`)}
+          onClick={() => navigate(`/api/notice/${category}`)}
           style={{
             padding: "0.6rem 1.2rem",
             backgroundColor: "#3399ff",

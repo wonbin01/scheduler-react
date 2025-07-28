@@ -15,14 +15,14 @@ root.render(
   <BrowserRouter>
     <Routes>
       <Route path="/" element={<Auth />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/notice" element={<Notice />} />
-      <Route path="/notice/:category" element={<NoticeBoard />} />
-      <Route path="/notice/:category/:id" element={<NoticeDetail />} />
-      <Route path="/notice/:category/:id/edit" element={<NoticeEdit />} />
-      <Route path="/schedulePage" element={<SchedulePage />} />
-      <Route path="/schedule/apply" element={<ScheduleApply />} />
-      <Route path="/schedule/view" element={<ScheduleView />} />
+      <Route path="/api/home" element={<Home />} />
+      <Route path="/api/notice" element={<Notice />} />
+      <Route path="/api/notice/:category" element={<NoticeBoard />} />
+      <Route path="/api/notice/:category/:id" element={<NoticeDetail />} />
+      <Route path="/api/notice/:category/:id/edit" element={<NoticeEdit />} />
+      <Route path="/api/schedulePage" element={<SchedulePage />} />
+      <Route path="/api/schedule/apply" element={<ScheduleApply />} />
+      <Route path="/api/schedule/view" element={<ScheduleView />} />
     </Routes>
   </BrowserRouter>
 );

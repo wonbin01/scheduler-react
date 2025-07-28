@@ -43,7 +43,7 @@ function ScheduleApplyPage() {
 
   useEffect(() => {
     axios
-      .get("/scheduleApplyPage", { withCredentials: true })
+      .get("/api/scheduleApplyPage", { withCredentials: true })
       .then((res) => {
         setUsername(res.data.name);
         setUserID(res.data.id);
@@ -57,7 +57,7 @@ function ScheduleApplyPage() {
   const fetchEvents = (year, month) => {
     setLoading(true);
     axios
-      .get(`/schedule/apply/${year}/${month}`, { withCredentials: true })
+      .get(`/api/schedule/apply/${year}/${month}`, { withCredentials: true })
       .then((res) => {
         const result = res.data
           .sort((a, b) => a.applyId - b.applyId)
@@ -138,7 +138,7 @@ function ScheduleApplyPage() {
 
     if (applyId) {
       axios
-        .put(`/schedule/apply/${applyId}`, eventPayload, { withCredentials: true })
+        .put(`/api/schedule/apply/${applyId}`, eventPayload, { withCredentials: true })
         .then(() => {
           alert("수정되었습니다.");
           fetchEvents(m.year(), m.month() + 1);
@@ -150,7 +150,7 @@ function ScheduleApplyPage() {
         });
     } else {
       axios
-        .post("/schedule/apply", eventPayload, { withCredentials: true })
+        .post("/api/schedule/apply", eventPayload, { withCredentials: true })
         .then(() => {
           fetchEvents(m.year(), m.month() + 1);
           closeModal();
@@ -207,7 +207,7 @@ function ScheduleApplyPage() {
   const handleDelete = () => {
     if (window.confirm("정말 삭제하시겠습니까?")) {
       axios
-        .delete(`/schedule/apply/${selectedEvent.applyId}`, { withCredentials: true })
+        .delete(`/api/schedule/apply/${selectedEvent.applyId}`, { withCredentials: true })
         .then(() => {
           alert("삭제되었습니다.");
           fetchEvents(currentViewDate.year(), currentViewDate.month() + 1);
@@ -275,7 +275,7 @@ function ScheduleApplyPage() {
           <button
             className="action-button"
             style={{ backgroundColor: "#777" }}
-            onClick={() => navigate("/schedulePage")}
+            onClick={() => navigate("/api/schedulePage")}
           >
             ← 이전으로
           </button>

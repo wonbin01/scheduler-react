@@ -10,7 +10,7 @@ function SchedulePage() {
 
     //session 확인하는 부분 -> 만약 세션이 없으면 홈으로 이동
   useEffect(() => {
-    axios.get("/home", { withCredentials: true })
+    axios.get("/api/home", { withCredentials: true })
       .then(response => {
         setUserId(response.data.id);
         setUserName(response.data.name);
@@ -24,7 +24,7 @@ function SchedulePage() {
     <div style={styles.container}>
       {/* 왼쪽 상단에 이전 버튼 */}
       <div style={styles.backButtonContainer}>
-        <button style={styles.backButton} onClick={() => navigate("/home")}>
+        <button style={styles.backButton} onClick={() => navigate("/api/home")}>
           ← 홈으로
         </button>
       </div>
@@ -34,13 +34,13 @@ function SchedulePage() {
       <div style={styles.buttonContainer}>
         <button
           style={styles.button}
-          onClick={() => navigate("/schedule/view")}
+          onClick={() => navigate("/api/schedule/view")}
         >
           스케줄 확인
         </button>
         <button
           style={styles.button}
-          onClick={() => navigate("/schedule/apply")}
+          onClick={() => navigate("/api/schedule/apply")}
         >
           스케줄 신청
         </button>

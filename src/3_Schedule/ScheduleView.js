@@ -43,7 +43,7 @@ const [currentViewDate, setCurrentViewDate] = useState(null);
 
   useEffect(() => {
   axios
-    .get("/scheduleView", { withCredentials: true })
+    .get("/api/scheduleView", { withCredentials: true })
     .then((res) => {
       setUserName(res.data.name);
       setUserID(res.data.id);
@@ -64,7 +64,7 @@ useEffect(() => {
 
   useEffect(() => {
     axios
-      .get("/member/all", { withCredentials: true })
+      .get("/api/member/all", { withCredentials: true })
       .then((res) => {
         setMemberList(res.data);
       })
@@ -104,7 +104,7 @@ useEffect(() => {
 
   try {
     const response = await axios.post(
-      "/scheduleview/apply",          // 서버 API 주소
+      "/api/scheduleview/apply",          // 서버 API 주소
       enrichedSchedules,              // body에 JSON 배열 형태로 데이터 전달
       {
         headers: {
@@ -131,7 +131,7 @@ if (currentViewDate) {
   const fetchEvents = (year, month) => {
   setLoading(true);
   axios
-    .get(`/scheduleview/${year}/${month}`, { withCredentials: true })
+    .get(`/api/scheduleview/${year}/${month}`, { withCredentials: true })
     .then((res) => {
       let result = res.data.map((item) => {
         // 날짜 가공
@@ -219,7 +219,7 @@ if (currentViewDate) {
 
   const handleDelete = async () => {
   try {
-    await axios.delete(`/scheduleview/${selectedEvent.scheduleEventId}`);
+    await axios.delete(`/api/scheduleview/${selectedEvent.scheduleEventId}`);
     alert("삭제되었습니다.");
     closeModal();
     if (currentViewDate) {
@@ -263,7 +263,7 @@ if (currentViewDate) {
     <div className="container">
     {/* 뒤로가기 버튼 추가 */}
     <button
-      onClick={() => navigate("/schedulePage")}
+      onClick={() => navigate("/api/schedulePage")}
       style={{
         marginBottom: "10px",
         padding: "6px 12px",

@@ -9,7 +9,7 @@ function Notice() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get("/notice", { withCredentials: true })
+    axios.get("/api/notice", { withCredentials: true })
       .then(res => {
         setCategories(res.data.categories);
         setLoading(false);
@@ -20,7 +20,7 @@ function Notice() {
   }, [navigate]);
 
   const handleCategoryClick = (category) => {
-    navigate(`/notice/${category}`);
+    navigate(`/api/notice/${category}`);
   };
 
   const handleAddCategory = () => {
@@ -28,7 +28,7 @@ function Notice() {
     if (newCategory && newCategory.trim()) {
       const name = newCategory.trim();
 
-      axios.post("/notice/category", { name }, { withCredentials: true })
+      axios.post("/api/notice/category", { name }, { withCredentials: true })
         .then(() => {
           setCategories(prev => [...prev, name]);
         })
@@ -39,7 +39,7 @@ function Notice() {
   };
 
   const handleBackClick = () => {
-    navigate("/home");
+    navigate("/api/home");
   };
 
   if (loading) return <div>로딩 중...</div>;
