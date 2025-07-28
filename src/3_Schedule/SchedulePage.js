@@ -24,7 +24,7 @@ function SchedulePage() {
     <div style={styles.container}>
       {/* 왼쪽 상단에 이전 버튼 */}
       <div style={styles.backButtonContainer}>
-        <button style={styles.backButton} onClick={() => navigate("/api/home")}>
+        <button style={styles.backButton} onClick={() => navigate("/home")}>
           ← 홈으로
         </button>
       </div>
@@ -34,13 +34,13 @@ function SchedulePage() {
       <div style={styles.buttonContainer}>
         <button
           style={styles.button}
-          onClick={() => navigate("/api/schedule/view")}
+          onClick={() => navigate("/schedule/view")}
         >
           스케줄 확인
         </button>
         <button
           style={styles.button}
-          onClick={() => navigate("/api/schedule/apply")}
+          onClick={() => navigate("/schedule/apply")}
         >
           스케줄 신청
         </button>

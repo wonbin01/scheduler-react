@@ -54,7 +54,7 @@ function NoticeBoard() {
 };
 
   const handleClickPost = (postId) => {
-    navigate(`/api/notice/${category}/${postId}`);
+    navigate(`/notice/${category}/${postId}`);
   };
 
   if (loading) return <div>로딩 중...</div>;
@@ -73,7 +73,7 @@ function NoticeBoard() {
   >
     {/* 왼쪽 상단 절대 위치 뒤로가기 버튼 */}
     <button
-      onClick={() => navigate("/api/notice")}
+      onClick={() => navigate("/notice")}
       style={{
         position: "absolute",
         top: "1rem",

@@ -49,7 +49,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
       axios.delete(`/api/notice/${category}/${id}`, { withCredentials: true })
         .then(() => {
           alert("게시글이 삭제되었습니다.");
-          navigate(`/api/notice/${category}`);
+          navigate(`/notice/${category}`);
         })
         .catch(() => {
           alert("게시글 삭제 실패");
@@ -58,7 +58,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
   };
 
   const handleEdit = () => {
-    navigate(`/api/notice/${category}/${id}/edit`);
+    navigate(`/notice/${category}/${id}/edit`);
   };
 
   const handleCommentSubmit = (e) => {
@@ -292,7 +292,7 @@ const [editCommentContent, setEditCommentContent] = useState(""); // 수정할 �
 
       <div style={{ marginTop: "2rem", display: "flex", gap: "1rem" }}>
         <button
-          onClick={() => navigate(`/api/notice/${category}`)}
+          onClick={() => navigate(`/notice/${category}`)}
           style={{
             padding: "0.6rem 1.2rem",
             backgroundColor: "#3399ff",

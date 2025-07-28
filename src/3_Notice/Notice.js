@@ -20,7 +20,7 @@ function Notice() {
   }, [navigate]);
 
   const handleCategoryClick = (category) => {
-    navigate(`/api/notice/${category}`);
+    navigate(`/notice/${category}`);
   };
 
   const handleAddCategory = () => {
@@ -39,7 +39,7 @@ function Notice() {
   };
 
   const handleBackClick = () => {
-    navigate("/api/home");
+    navigate("/home");
   };
 
   if (loading) return <div>로딩 중...</div>;

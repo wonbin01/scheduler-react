@@ -17,7 +17,7 @@ function NoticeEdit() {
     })
     .catch(err => {
       alert("게시글 정보를 불러오지 못했습니다.");
-      navigate(`/api/notice/${category}`);
+      navigate(`/notice/${category}`);
     })
     .finally(() => setLoading(false));
 }, [category, id, navigate]);
@@ -28,7 +28,7 @@ function NoticeEdit() {
     axios.put(`/api/notice/${category}/${id}`, { title, content }, { withCredentials: true })
       .then(() => {
         alert("게시글이 수정되었습니다.");
-        navigate(`/api/notice/${category}/${id}`);
+        navigate(`/notice/${category}/${id}`);
       })
       .catch(() => {
         alert("게시글 수정 실패");

@@ -263,7 +263,7 @@ if (currentViewDate) {
     <div className="container">
     {/* 뒤로가기 버튼 추가 */}
     <button
-      onClick={() => navigate("/api/schedulePage")}
+      onClick={() => navigate("/schedulePage")}
       style={{
         marginBottom: "10px",
         padding: "6px 12px",

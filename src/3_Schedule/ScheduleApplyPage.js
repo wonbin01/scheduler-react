@@ -275,7 +275,7 @@ function ScheduleApplyPage() {
           <button
             className="action-button"
             style={{ backgroundColor: "#777" }}
-            onClick={() => navigate("/api/schedulePage")}
+            onClick={() => navigate("/schedulePage")}
           >
             ← 이전으로
           </button>
