@@ -34,6 +34,13 @@ function ScheduleApplyPage() {
   const [selectedDateEvents, setSelectedDateEvents] = useState([]);
   const [showDateEventsModal, setShowDateEventsModal] = useState(false);
 
+  const [selectedDates, setSelectedDates] = useState([]);
+  const [allowedDates, setAllowedDates] = useState([]);
+
+  
+
+
+
   const statusColors = {
     휴무신청: "#757575",
     오픈신청: "#1976d2",
@@ -48,11 +55,42 @@ function ScheduleApplyPage() {
         setUsername(res.data.name);
         setUserID(res.data.id);
         fetchEvents(currentViewDate.year(), currentViewDate.month() + 1);
+        fetchAllowedDates();
       })
       .catch(() => {
         navigate("/");
       });
   }, [navigate]);
+
+  const fetchAllowedDates = () => {
+  axios
+    .get("/api/allowed-dates", { withCredentials: true })
+    .then((res) => {
+      const onlyDateStrings = res.data.map((item) => item.date); // ← 여기가 핵심
+      setAllowedDates(onlyDateStrings);
+    })
+    .catch((err) => {
+      console.error("allowed-dates 불러오기 실패", err);
+    });
+};
+
+const handleRemoveAllowedDate = (date) => {
+  if (window.confirm("정말 삭제하시겠습니까?")) {
+    axios
+      .delete(`/api/allowed-dates/${date}`, { withCredentials: true })
+      .then(() => {
+        alert("삭제되었습니다.");
+        setAllowedDates(allowedDates.filter((d) => d !== date));
+      })
+      .catch((err) => {
+        console.error("삭제 실패", err);
+        alert("삭제 실패했습니다.");
+      });
+  }
+};
+
+
+
 
   const fetchEvents = (year, month) => {
     setLoading(true);
@@ -152,6 +190,7 @@ function ScheduleApplyPage() {
       axios
         .post("/api/schedule/apply", eventPayload, { withCredentials: true })
         .then(() => {
+          alert("신청되었습니다.");
           fetchEvents(m.year(), m.month() + 1);
           closeModal();
         })
@@ -202,6 +241,9 @@ function ScheduleApplyPage() {
     setEtc(selectedEvent.etc);
     setSelectedEvent(null);
     setShowForm(true);
+    if (allowedDates.includes(moment(selectedEvent.start).format("YYYY-MM-DD"))) {
+  setSelectedDate(moment(selectedEvent.start).format("YYYY-MM-DD"));
+}
   };
 
   const handleDelete = () => {
@@ -237,9 +279,71 @@ function ScheduleApplyPage() {
 
     return { style };
   };
+  const handleRemoveSelectedDate = (date) => {
+  setSelectedDates(selectedDates.filter((d) => d !== date));
+};
+
+const handleSubmitAllowedDates = () => {
+  if (selectedDates.length === 0) {
+    alert("선택된 날짜가 없습니다.");
+    return;
+  }
+
+  axios.post("/api/allowed-dates/bulk", selectedDates, { withCredentials: true })
+    .then(() => {
+      alert("신청 가능 날짜가 저장되었습니다.");
+      setAllowedDates([...allowedDates, ...selectedDates]);
+      setSelectedDates([]);
+    })
+    .catch((err) => {
+      console.error("날짜 저장 실패", err);
+      alert("날짜 저장에 실패했습니다.");
+    });
+};
 
   return (
     <>
+
+{userID === 202126845 && (
+  <div className="admin-date-setter">
+    <h4>신청 가능 날짜 설정</h4>
+    <input
+      type="date"
+      onChange={(e) => {
+        const date = e.target.value;
+        if (date && !selectedDates.includes(date)) {
+          setSelectedDates([...selectedDates, date]);
+        } else {
+          alert("이미 선택된 날짜입니다.");
+        }
+      }}
+    />
+    <ul>
+  {selectedDates.map(date => (
+    <li key={date}>
+      {date}
+      <button onClick={() => handleRemoveSelectedDate(date)}>삭제</button>
+    </li>
+  ))}
+</ul>
+
+    <hr />
+    <h4>현재 저장된 신청 가능 날짜</h4>
+    <ul>
+      <ul>
+  {allowedDates.map(d => (
+    <li key={d}>
+      {d}
+      <button onClick={() => handleRemoveAllowedDate(d)}>삭제</button>
+    </li>
+      ))}
+</ul>
+    </ul>
+  </div>
+)}
+
+
+{userID === 202126845 && <button onClick={handleSubmitAllowedDates}>날짜들 저장</button>}
       <div className="container">
         <div className="status-color-wrapper">
           {Object.entries(statusColors).map(([status, color]) => (
@@ -252,21 +356,32 @@ function ScheduleApplyPage() {
 
         <div className={`calendar-wrapper ${loading ? "loading" : ""}`}>
           <Calendar
-            localizer={localizer}
-            events={events}
-            startAccessor="start"
-            endAccessor="end"
-            defaultView="month"
-            views={["month"]}
-            selectable
-            onSelectSlot={handleSelectSlot}
-            onSelectEvent={handleSelectEvent}
-            onNavigate={handleNavigate}
-            style={{ height: "100%" }}
-            messages={messages}
-            onShowMore={handleShowMore}
-            eventPropGetter={eventStyleGetter}
-          />
+  localizer={localizer}
+  events={events}
+  startAccessor="start"
+  endAccessor="end"
+  defaultView="month"
+  views={["month"]}
+  selectable
+  onSelectSlot={handleSelectSlot}
+  onSelectEvent={handleSelectEvent}
+  onNavigate={handleNavigate}
+  style={{ height: "100%" }}
+  messages={messages}
+  onShowMore={handleShowMore}
+  eventPropGetter={eventStyleGetter}
+  dayPropGetter={(date) => {
+    const dateStr = moment(date).format("YYYY-MM-DD");
+    const isAllowed = allowedDates.includes(dateStr);
+
+    return {
+      style: {
+        backgroundColor: isAllowed ? "white" : "#f0f0f0",
+        cursor: isAllowed ? "pointer" : "not-allowed",
+      },
+    };
+  }}
+/>
         </div>
 
         {loading && <div className="loading-indicator">로딩 중...</div>}
@@ -300,11 +415,17 @@ function ScheduleApplyPage() {
               <label>신청자 ID</label>
               <input type="text" value={userID || ""} readOnly />
               <label>신청 날짜</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-              />
+<select
+  value={selectedDate}
+  onChange={(e) => setSelectedDate(e.target.value)}
+>
+  <option value="">-- 날짜 선택 --</option>
+  {allowedDates.map((d) => (
+    <option key={d} value={d}>
+      {d}
+    </option>
+  ))}
+</select>
 
               <label>신청 내용</label>
               <div className="time-slot-buttons">
