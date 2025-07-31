@@ -303,8 +303,7 @@ const handleSubmitAllowedDates = () => {
 
   return (
     <>
-
-{userID === 202126845 && (
+      {userID === 202126845 && (
   <div className="admin-date-setter">
     <h4>신청 가능 날짜 설정</h4>
     <input
@@ -319,40 +318,41 @@ const handleSubmitAllowedDates = () => {
       }}
     />
     <ul>
-  {selectedDates.map(date => (
-    <li key={date}>
-      {date}
-      <button onClick={() => handleRemoveSelectedDate(date)}>삭제</button>
-    </li>
-  ))}
-</ul>
+      {selectedDates.map(date => (
+        <li key={date}>
+          {date}
+          <button onClick={() => handleRemoveSelectedDate(date)}>삭제</button>
+        </li>
+      ))}
+    </ul>
+
+    {/* '날짜들 저장' 버튼을 이 위치로 옮겼습니다. */}
+    <button className="admin-save-button" onClick={handleSubmitAllowedDates}>신청 기간 저장</button>
 
     <hr />
     <h4>현재 저장된 신청 가능 날짜</h4>
     <ul>
-      <ul>
-  {allowedDates.map(d => (
-    <li key={d}>
-      {d}
-      <button onClick={() => handleRemoveAllowedDate(d)}>삭제</button>
-    </li>
+      {allowedDates.map(d => (
+        <li key={d}>
+          {d}
+          <button onClick={() => handleRemoveAllowedDate(d)}>삭제</button>
+        </li>
       ))}
-</ul>
     </ul>
   </div>
 )}
 
+{/* 기존에 있던 버튼은 제거했습니다. */}
 
-{userID === 202126845 && <button onClick={handleSubmitAllowedDates}>날짜들 저장</button>}
-      <div className="container">
-        <div className="status-color-wrapper">
-          {Object.entries(statusColors).map(([status, color]) => (
-            <div key={status} className="status-color-item">
-              <div className="status-color-box" style={{ backgroundColor: color }} />
-              <span>{status}</span>
-            </div>
-          ))}
-        </div>
+<div className="container">
+  <div className="status-color-wrapper">
+    {Object.entries(statusColors).map(([status, color]) => (
+      <div key={status} className="status-color-item">
+        <div className="status-color-box" style={{ backgroundColor: color }} />
+        <span>{status}</span>
+      </div>
+    ))}
+  </div>
 
         <div className={`calendar-wrapper ${loading ? "loading" : ""}`}>
           <Calendar
