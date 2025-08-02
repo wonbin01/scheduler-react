@@ -342,8 +342,6 @@ const handleSubmitAllowedDates = () => {
   </div>
 )}
 
-{/* 기존에 있던 버튼은 제거했습니다. */}
-
 <div className="container">
   <div className="status-color-wrapper">
     {Object.entries(statusColors).map(([status, color]) => (
@@ -521,16 +519,36 @@ const handleSubmitAllowedDates = () => {
               </h3>
               <ul className="event-list">
                 {selectedDateEvents.length > 0 ? (
-                  selectedDateEvents.map((evt, idx) => (
+                  selectedDateEvents
+            .sort((a, b) => new Date(a.createAt) - new Date(b.createAt))
+            .map((evt, idx) => (
                     <li
-                      key={idx}
-                      className="event-list-item"
-                      onClick={() => {
-                        handleSelectEvent(evt);
-                      }}
-                    >
-                      <strong>{evt.username}</strong> - {evt.timeSlot || "시간 미지정"}
-                    </li>
+              key={idx}
+              className="event-list-item"
+              onClick={() => {
+                handleSelectEvent(evt);
+              }}
+              style={{
+                cursor: "pointer",
+                display: "flex", // flexbox를 사용하여 내부 요소를 정렬합니다.
+                justifyContent: "space-between", // 첫 번째 요소와 마지막 요소를 양 끝으로 보냅니다.
+                border: evt.isMySchedule ? "2px solid #1976d2" : "1px solid #ddd",
+                backgroundColor: evt.isMySchedule ? "#e3f2fd" : "#fff",
+                fontWeight: evt.isMySchedule ? "bold" : "normal",
+                padding: "8px",
+                borderRadius: "4px",
+                marginBottom: "4px",
+              }}
+            >
+              <div>
+                <strong>{evt.username}</strong> - {evt.timeSlot || "시간 미지정"}
+              </div>
+              {evt.createAt && (
+                <span style={{ fontSize: '0.8em', color: '#666' }}>
+                  작성: {moment(evt.createAt).format("YYYY.MM.DD HH:mm")}
+                </span>
+              )}
+            </li>
                   ))
                 ) : (
                   <li>신청내역이 없습니다.</li>

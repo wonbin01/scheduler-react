@@ -31,11 +31,38 @@ function Auth() {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+  
+    // 메시지 초기화
+    setMessage("");
+
+    // --- 비밀번호 길이 유효성 검사 추가 시작 ---
+    if (password.length < 4) {
+      setMessage("비밀번호는 최소 4자리 이상이어야 합니다.");
+      return; // 서버 요청을 보내지 않고 함수 종료
+    }
+  
     try {
       const res = await axios.post("/signup", { usernumber, password, username });
       setMessage("회원가입 성공: " + res.data);
     } catch (err) {
-      setMessage("회원가입 실패: " + (err.response?.data || "서버 오류"));
+      // catch 블록에서 에러를 잡습니다.
+      if (err.response) {
+        // 서버에서 응답을 보낸 경우
+        const status = err.response.status;
+        const errorMessage = err.response.data;
+  
+        if (status === 409) {
+          // 백엔드에서 설정한 Conflict(409) 상태 코드를 확인
+          // 메시지를 더 구체적으로 표시
+          setMessage("회원가입 실패: " + (errorMessage.message || "이미 존재하는 아이디입니다."));
+        } else {
+          // 그 외 다른 종류의 서버 에러
+          setMessage("회원가입 실패: " + (errorMessage.message || "서버 오류가 발생했습니다."));
+        }
+      } else {
+        // 서버가 응답하지 않은 경우 (네트워크 오류 등)
+        setMessage("회원가입 실패: 네트워크 오류가 발생했습니다.");
+      }
     }
   };
 

@@ -40,7 +40,7 @@ function NoticeBoard() {
   axios.post(`/api/notice/${category}`, { title, content }, { withCredentials: true })
     .then(() => {
       // 게시글 작성 성공 후, 다시 게시글 목록을 서버에서 받아오기
-      return axios.get(`/notice/${category}`, { withCredentials: true });
+      return axios.get(`/api/notice/${category}`, { withCredentials: true });
     })
     .then(res => {
       setPosts(res.data);

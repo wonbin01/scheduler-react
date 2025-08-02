@@ -38,6 +38,7 @@ function SchedulePageView() {
   const [memberList, setMemberList] = useState([]);
   const [userName, setUserName] = useState("");
 const [currentViewDate, setCurrentViewDate] = useState(null);
+const myOnlyEvents = events.filter((event) => event.isMySchedule);
 
   const [schedules, setSchedules] = useState(initialSchedule);
 
@@ -295,10 +296,11 @@ if (currentViewDate) {
   ))}
 </div>
 
+
       <div className={`calendar-wrapper ${loading ? "loading" : ""}`}>
         <Calendar
           localizer={localizer}
-          events={events}
+          events={myOnlyEvents}
           startAccessor="start"
           endAccessor="end"
           defaultView="month"
@@ -311,6 +313,7 @@ if (currentViewDate) {
           messages={messages}
           onShowMore={handleShowMore}
           eventPropGetter={eventStyleGetter}
+          
         />
       </div>
 
@@ -364,7 +367,6 @@ if (currentViewDate) {
             return groups;
           }, {})
         ).map(([position, events]) => {
-          // 출근시간 기준 오름차순 정렬 (시간 없으면 뒤로)
           const sortedEvents = events.slice().sort((a, b) => {
             if (!a.startTime) return 1;
             if (!b.startTime) return -1;
@@ -380,7 +382,16 @@ if (currentViewDate) {
                     key={idx}
                     className="event-list-item"
                     onClick={() => handleSelectEvent(evt)}
-                    style={{ cursor: "pointer" }}
+                    style={{
+                      cursor: "pointer",
+                      // 본인 스케줄에만 강조 스타일 적용
+                      border: evt.isMySchedule ? "2px solid #1976d2" : "1px solid #ddd",
+                      backgroundColor: evt.isMySchedule ? "#e3f2fd" : "#fff",
+                      fontWeight: evt.isMySchedule ? "bold" : "normal",
+                      padding: "8px",
+                      borderRadius: "4px",
+                      marginBottom: "4px",
+                    }}
                   >
                     <strong>{evt.userName || evt.username}</strong> - 출근시간: {evt.startTime || "미지정"} / 퇴근시간: {evt.endTime || "미지정"}
                   </li>
@@ -401,8 +412,6 @@ if (currentViewDate) {
 
       {/* 스케줄 등록 모달 */}
     <div className="container">
-      {/* 기존 코드 생략 */}
-
       {/* 스케줄 등록 모달 */}
 {showApplyModal && (
   <>
