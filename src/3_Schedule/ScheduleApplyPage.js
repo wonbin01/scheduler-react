@@ -60,27 +60,27 @@ function ScheduleApplyPage() {
       .catch(() => {
         navigate("/");
       });
-  }, [navigate]);
+  }, [navigate, currentViewDate]);
 
   const fetchAllowedDates = () => {
   axios
     .get("/api/allowed-dates", { withCredentials: true })
     .then((res) => {
-      const onlyDateStrings = res.data.map((item) => item.date); // ← 여기가 핵심
-      setAllowedDates(onlyDateStrings);
+      setAllowedDates(res.data);
     })
     .catch((err) => {
       console.error("allowed-dates 불러오기 실패", err);
     });
 };
 
-const handleRemoveAllowedDate = (date) => {
+const handleRemoveAllowedDate = (id) => {
+  console.log("삭제 요청 id : ", id);
   if (window.confirm("정말 삭제하시겠습니까?")) {
     axios
-      .delete(`/api/allowed-dates/${date}`, { withCredentials: true })
+      .delete(`/api/allowed-dates/${id}`, { withCredentials: true })
       .then(() => {
         alert("삭제되었습니다.");
-        setAllowedDates(allowedDates.filter((d) => d !== date));
+        setAllowedDates(allowedDates.filter((d) => d.id !== id));
       })
       .catch((err) => {
         console.error("삭제 실패", err);
@@ -190,11 +190,13 @@ const handleRemoveAllowedDate = (date) => {
       axios
         .post("/api/schedule/apply", eventPayload, { withCredentials: true })
         .then(() => {
+          console.log(eventPayload); // 실제 보내는 값 확인
           alert("신청되었습니다.");
           fetchEvents(m.year(), m.month() + 1);
           closeModal();
         })
         .catch((err) => {
+          console.log(eventPayload); // 실제 보내는 값 확인
           alert("신청 중 오류 발생");
           console.error(err);
         });
@@ -290,15 +292,16 @@ const handleSubmitAllowedDates = () => {
   }
 
   axios.post("/api/allowed-dates/bulk", selectedDates, { withCredentials: true })
-    .then(() => {
-      alert("신청 가능 날짜가 저장되었습니다.");
-      setAllowedDates([...allowedDates, ...selectedDates]);
-      setSelectedDates([]);
-    })
-    .catch((err) => {
-      console.error("날짜 저장 실패", err);
-      alert("날짜 저장에 실패했습니다.");
-    });
+  .then(res => {
+    setAllowedDates([...allowedDates, ...res.data]); // id 포함된 객체
+    setSelectedDates([]);
+    console.log("저장 요청 날짜들 : ", selectedDates);
+    alert("날짜가 저장되었습니다.");
+  })
+  .catch((err) => {
+    console.error("날짜 저장 실패", err);
+    alert("날짜 저장에 실패했습니다.");
+  });
 };
 
   return (
@@ -333,9 +336,9 @@ const handleSubmitAllowedDates = () => {
     <h4>현재 저장된 신청 가능 날짜</h4>
     <ul>
       {allowedDates.map(d => (
-        <li key={d}>
-          {d}
-          <button onClick={() => handleRemoveAllowedDate(d)}>삭제</button>
+        <li key={d.id}>
+          {d.date}
+          <button onClick={() => handleRemoveAllowedDate(d.id)}>삭제</button>
         </li>
       ))}
     </ul>
@@ -370,7 +373,7 @@ const handleSubmitAllowedDates = () => {
   eventPropGetter={eventStyleGetter}
   dayPropGetter={(date) => {
     const dateStr = moment(date).format("YYYY-MM-DD");
-    const isAllowed = allowedDates.includes(dateStr);
+    const isAllowed = allowedDates.some((d) => d.date === dateStr);
 
     return {
       style: {
@@ -419,8 +422,8 @@ const handleSubmitAllowedDates = () => {
 >
   <option value="">-- 날짜 선택 --</option>
   {allowedDates.map((d) => (
-    <option key={d} value={d}>
-      {d}
+    <option key={d.id} value={d.date}>
+      {d.date}
     </option>
   ))}
 </select>
